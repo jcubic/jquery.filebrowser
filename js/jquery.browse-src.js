@@ -45,13 +45,7 @@
 			var $content = $('<ul/>').appendTo(self);
 			$content.on('dblclick', 'li', function() {
 				var $this = $(this);
-				var filename;
-				var sanitized = self.sanitize(path);
-				if (sanitized) {
-					filename = self.join([path, $this.text()]);
-				} else {
-					filename = path + $this.text();
-				}
+				var filename = self.join([path, $this.text()]);
 				if ($this.hasClass('directory')) {
 					self.show(filename);
 				} else if ($this.hasClass('file')) {
@@ -99,14 +93,14 @@
 					return self;
 				},
 				join: function(path) {
-					return path.join(settings.separator);
-				},
-				sanitize: function(path) {
-					var re = new RegExp('^' + $.browse.escape_regex(settings.root));
-					return path.replace(re, '');
+					return path.map(function(path) {
+						var re = new RegExp($.browse.escape_regex(settings.separator) + '$', '');
+						return path.replace(re, '');
+					}).join(settings.separator);
 				},
 				split: function(filename) {
-					filename = this.sanitize(filename);
+					var re = new RegExp('^' + $.browse.escape_regex(settings.root));
+					filename = filename.replace(re, '');
 					if (filename) {
 						return filename.split($.browse.escape_regex(settings.separator));
 					} else {
