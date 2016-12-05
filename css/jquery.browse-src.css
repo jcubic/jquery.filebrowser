@@ -1,0 +1,41 @@
+/**@license
+ *
+ * jQuery Browse - directory browser jQuery plugin version {{VER}}
+ *
+ * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
+ * Released under the MIT license
+ *
+ * Date: {{DATE}}
+ */
+.browse.hidden {
+	visibility: hidden;
+}
+.browse ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.browse li {
+    display: table-cell;
+    position: relative;
+    width: 64px;
+    box-sizing: border-box;
+    padding-top: 32px;
+    text-align: center;
+    margin: 5px;
+    word-break: break-word;
+}
+.browse li:before {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    text-align: center;
+    background: url(icons.svg) no-repeat;
+    background-clip: content-box;
+    content: "";
+    position: absolute;
+    top: 0;
+    margin: auto;
+    left: 0;
+    right: 0;
+}

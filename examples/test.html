@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Example of jQuery Browse</title>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="js/jquery.browse-src.js"></script>
+  <script src="http://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+  <link href="http://code.jquery.com/ui/1.12.1/themes/dark-hive/jquery-ui.css" rel="stylesheet"/>
+  <link href="css/jquery.browse-src.css" rel="stylesheet"/>
+  <style>
+body {
+	font-size: 10px;
+}
+.ui-dialog .ui-dialog-content {
+	padding: 0;
+}
+  </style>
+  <script>
+$(function() {
+	var env = {
+		'bin': {
+			'bash': 'bash content',
+			'python': 'python content',
+			'perl': 'perl content',
+			'find': 'find content',
+			'share': {
+				'foo': 'hello foo',
+				'bar': 'hello bar',
+				'lib': {
+					'asd': 'foo bar'
+				}
+			}
+		},
+		'foo': {
+			'page.html': '<html></html>',
+			'style.css': 'body { overflow: scroll; }'
+		},
+		'bar.svg': 'Foo',
+		'baz.txt': 'Hello'
+	}
+	var settings = {
+		separator: '/',
+		root: '/'
+	};
+
+	function get(path) {
+		var current = env;
+		browse.walk(path, function(file) {
+			current = current[file];
+		});
+		return current;
+	}
+	var browse = $('#browser').dialog().browse({
+		root: '/',
+		separator: '/',
+		start_directory: '/',
+		dir: function(path, callback) {
+			dir = get(path);
+			if ($.isPlainObject(dir)) {
+				var result = {files:[], dirs: []};
+				Object.keys(dir).forEach(function(key) {
+					if (typeof dir[key] == 'string') {
+						result.files.push(key);
+					} else if ($.isPlainObject(dir[key])) {
+						result.dirs.push(key);
+					}
+				});
+				callback(result);
+			}
+		},
+		open: function(filename) {
+			var file = get(filename);
+			if (typeof file == 'string') {
+				alert(file);
+			} else {
+				throw new Error('Invalid filename');
+			}
+		},
+		on_change: function() {
+			$('#path').val(this.path());
+		}
+	});
+});
+  </script>
+</head>
+	<input id="path"/>
+	<div id="browser"></div>
+<body>
+</body>
+</html>
