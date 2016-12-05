@@ -16,7 +16,7 @@
 	padding: 0;
 }
 .browse li {
-    display: table-cell;
+    display: inline-block;
     position: relative;
     width: 64px;
     box-sizing: border-box;
@@ -38,4 +38,47 @@
     margin: auto;
     left: 0;
     right: 0;
+}
+.browse .file:before {
+	background-position: 0 -96px;
+}
+.browse .svg:before {
+	background-position: -64px 0;
+}
+.browse .txt:before {
+	background-position: -32px -64px;
+}
+.browse .pdf:before {
+	background-position: -96px -64px;
+}
+.browse .php:before {
+	background-position: -32px -32px;
+}
+.browse .html:before {
+	background-position: -64px -32px;
+}
+.browse .js:before {
+	background-position: -96px 0;
+}
+.browse .json:before {
+	background-position: -96px -32px;
+}
+.browse .css:before {
+	background-position: 0 -32px;
+}
+.browse .doc:before, .browse .docx:before {
+	background-position: -64px -64px;
+}
+.browse .xls:before, .browse .xlsx:before {
+	background-position: -32px -96px;
+}
+.browse .ppt:before, .browse .pptx:before {
+	background-position: -64px -96px;
+}
+.browse .jpg:before,
+.browse .jpeg:before,
+.browse .gif:before,
+.browse .bmp:before,
+.browse .png:before {
+	background-position: 0 -64px;
 }
