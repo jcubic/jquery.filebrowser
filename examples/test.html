@@ -32,6 +32,9 @@ $(function() {
 				}
 			}
 		},
+		'C:': {
+			'foo': 'hello foo'
+		},
 		'foo': {
 			'page.html': '<html></html>',
 			'style.css': 'body { overflow: scroll; }'
@@ -63,9 +66,9 @@ $(function() {
 		return current;
 	}
 	var browse = $('#browser').dialog().browse({
-		root: '/',
-		separator: '/',
-		start_directory: '/',
+		root: '',
+		separator: '\\',
+		start_directory: '',
 		dir: function(path, callback) {
 			dir = get(path);
 			if ($.isPlainObject(dir)) {
@@ -79,6 +82,9 @@ $(function() {
 				});
 				callback(result);
 			}
+		},
+		item_class: function(path, name) {
+			return name.match(/[A-Z]:/) ? 'drive' : '';
 		},
 		open: function(filename) {
 			var file = get(filename);

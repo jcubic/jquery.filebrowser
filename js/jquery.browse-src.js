@@ -41,11 +41,12 @@
 			self.addClass('browse hidden');
 			var path;
 			var current_content;
+			var $adress = $('<input class="adress-bar"/>').append
 			var $toolbar = $('<ul class="toolbar"></ul>').appendTo(self);
 			var $content = $('<ul/>').appendTo(self);
 			$content.on('dblclick', 'li', function() {
 				var $this = $(this);
-				var filename = self.join([path, $this.text()]);
+				var filename = self.join(path, $this.text());
 				if ($this.hasClass('directory')) {
 					self.show(filename);
 				} else if ($this.hasClass('file')) {
@@ -73,14 +74,23 @@
 							self.addClass('hidden');
 							$content.empty();
 							current_content.dirs.forEach(function(dir) {
-								$('<li class="directory">' + dir + '</li>').
+								var cls = settings.item_class(new_path, dir);
+								var $li = $('<li class="directory">' + dir + '</li>').
 									appendTo($content);
+								if (cls) {
+									$li.addClass(cls);
+								}
+									
 							});
 							current_content.files.forEach(function(file) {
 								var $li = $('<li class="file">' + file + '</li>').
 									appendTo($content);
 								if (file.match('.')) {
 									$li.addClass(file.split('.').pop());
+								}
+								var cls = settings.item_class(new_path, file);
+								if (cls) {
+									$li.addClass(cls);
 								}
 							});
 							self.removeClass('hidden');
@@ -92,17 +102,18 @@
 					}
 					return self;
 				},
-				join: function(path) {
-					return path.map(function(path) {
+				join: function() {
+					var path = [].slice.call(arguments);
+					return [].slice.call(arguments).map(function(path) {
 						var re = new RegExp($.browse.escape_regex(settings.separator) + '$', '');
 						return path.replace(re, '');
-					}).join(settings.separator);
+					}).filter(Boolean).join(settings.separator) + settings.separator;
 				},
 				split: function(filename) {
 					var re = new RegExp('^' + $.browse.escape_regex(settings.root));
 					filename = filename.replace(re, '');
 					if (filename) {
-						return filename.split($.browse.escape_regex(settings.separator));
+						return filename.split(settings.separator).slice(0, -1);
 					} else {
 						return [];
 					}
