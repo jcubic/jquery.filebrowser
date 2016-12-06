@@ -15,11 +15,17 @@
 			},
 			root: '/',
 			separator: '/',
+			labels: true,
 			on_change: $.noop,
-			on_init: $.noop
+			on_init: $.noop,
+			refresh_timer: 200
 		},
 		strings: {
-			
+			toolbar: {
+				back: 'back',
+				up: 'up',
+				refresh: 'refresh'
+			}
 		},
 		escape_regex: function(str) {
 			if (typeof str == 'string') {
@@ -40,9 +46,24 @@
 			var self = this;
 			self.addClass('browse hidden');
 			var path;
+			var paths = [];
 			var current_content;
 			var $adress = $('<input class="adress-bar"/>').append
 			var $toolbar = $('<ul class="toolbar"></ul>').appendTo(self);
+			if (settings.labels) {
+				$toolbar.addClass('labels');
+			}
+			var toolbar = $.browse.strings.toolbar;
+			Object.keys(toolbar).forEach(function(name) {
+				$('<li/>').text(toolbar[name]).addClass(name).appendTo($toolbar);
+			});
+			$toolbar.on('click', 'li', function() {
+				var $this = $(this);
+				if (!$this.hasClass('disabled')) {
+					var name = $this.text();
+					self[name]();
+				}
+			});
 			var $content = $('<ul/>').appendTo(self);
 			$content.on('dblclick', 'li', function() {
 				var $this = $(this);
@@ -61,13 +82,46 @@
 					return current;
 				},
 				back: function() {
-					
+					paths.pop();
+					self.show(paths[paths.length-1], {push: false});
+					return self;
 				},
 				up: function() {
-					
+					var dirs = self.split(path);
+					dirs.pop();
+					self.show(self.join.apply(self, dirs));
+					return self;
 				},
-				show: function(new_path, callback) {
-					if (path != new_path) {
+				refresh: function() {
+					$content.addClass('hidden');
+					var timer = $.Deferred();
+					var callback = $.Deferred();
+					if (settings.refresh_timer) {
+						setTimeout(timer.resolve.bind(timer), settings.refresh_timer);
+					} else {
+						timer.resolve();
+					}
+					self.show(path, {
+						force: true,
+						push: false,
+						callback: function() {
+							callback.resolve();
+						}
+					});
+					$.when(timer, callback).then(function() {
+						$content.removeClass('hidden');
+					});
+				},
+				show: function(new_path, options) {
+					var defaults = {callback: $.noop, push: true, force: false}
+					options = $.extend({}, defaults, options);
+					if (path != new_path || options.force) {
+						self.addClass('hidden');
+						if (options.push) {
+							paths.push(new_path);
+						}
+						$toolbar.find('.up').toggleClass('disabled', new_path == settings.root);
+						$toolbar.find('.back').toggleClass('disabled', paths.length == 1);
 						path = new_path;
 						settings.dir(path, function(content) {
 							current_content = content;
@@ -95,19 +149,19 @@
 							});
 							self.removeClass('hidden');
 							settings.on_change.call(self);
-							if ($.isFunction(callback)) {
-								callback();
-							}
+							options.callback();
 						});
 					}
 					return self;
 				},
 				join: function() {
-					var path = [].slice.call(arguments);
-					return [].slice.call(arguments).map(function(path) {
+					var paths = [].slice.call(arguments);
+					var path = paths.map(function(path) {
 						var re = new RegExp($.browse.escape_regex(settings.separator) + '$', '');
 						return path.replace(re, '');
 					}).filter(Boolean).join(settings.separator) + settings.separator;
+					var re = new RegExp('^' + $.browse.escape_regex(settings.root));
+					return re.test(path) ? path : settings.root + path;
 				},
 				split: function(filename) {
 					var re = new RegExp('^' + $.browse.escape_regex(settings.root));
@@ -129,7 +183,9 @@
 			});
 			setTimeout(function() {
 				var path = settings.start_directory || settings.root;
-				self.show(path, settings.on_init.bind(self));
+				self.show(path, {
+					callback: settings.on_init.bind(self)
+				});
 			}, 0);
 			self.data('browse', self);
 			return self;

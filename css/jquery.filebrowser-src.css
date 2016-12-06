@@ -7,7 +7,7 @@
  *
  * Date: {{DATE}}
  */
-.browse.hidden {
+.browse.hidden, .browse .hidden {
 	visibility: hidden;
 }
 .browse ul {
@@ -28,6 +28,36 @@
     -moz-user-select: none;     /* Firefox all */
     -ms-user-select: none;      /* IE 10+ */
     user-select: none;          /* Likely future */
+}
+.browse .toolbar {
+	background: #6b6b6b;
+	background: -moz-linear-gradient(top, #6b6b6b 0%, #262626 100%);
+	background: -webkit-linear-gradient(top, #6b6b6b 0%,#262626 100%);
+	background: linear-gradient(to bottom, #6b6b6b 0%,#262626 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6b6b6b', endColorstr='#262626',GradientType=0 );
+copy
+}
+.browse .toolbar li {
+	width: 40px;
+}
+.browse .toolbar:not(.labels) li{
+	text-indent: -99999px;
+}
+.browse .toolbar li:not(.disabled):hover:before {
+	background-color: #0b93d5;
+	cursor: pointer;
+}
+.browse .toolbar:not(.labels) li {
+	padding-top: 20px;
+}
+.browse li.back:before {
+	background-position: 0 -160px
+}
+.browse li.up:before {
+	background-position: -32px -160px
+}
+.browse li.refresh:before {
+	background-position: -96px -160px
 }
 .browse li:before {
     display: inline-block;

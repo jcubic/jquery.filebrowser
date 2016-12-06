@@ -4,10 +4,10 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>Example of jQuery Browse</title>
   <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-  <script src="../js/jquery.browse-src.js"></script>
+  <script src="../js/jquery.filebrowser-src.js"></script>
   <script src="http://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
   <link href="http://code.jquery.com/ui/1.12.1/themes/dark-hive/jquery-ui.css" rel="stylesheet"/>
-  <link href="../css/jquery.browse-src.css" rel="stylesheet"/>
+  <link href="../css/jquery.filebrowser-src.css" rel="stylesheet"/>
   <style>
 body {
 	font-size: 10px;
@@ -32,9 +32,11 @@ $(function() {
 				}
 			}
 		},
+		/*
 		'C:': {
 			'foo': 'hello foo'
 		},
+		//*/
 		'foo': {
 			'page.html': '<html></html>',
 			'style.css': 'body { overflow: scroll; }'
@@ -66,9 +68,8 @@ $(function() {
 		return current;
 	}
 	var browse = $('#browser').dialog().browse({
-		root: '',
-		separator: '\\',
-		start_directory: '',
+		root: '/',
+		separator: '/',
 		dir: function(path, callback) {
 			dir = get(path);
 			if ($.isPlainObject(dir)) {

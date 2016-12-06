@@ -1,0 +1,10 @@
+.*
+*~
+bower.*
+package.in
+Makefile*
+README.in
+examples
+bin
+css/jquery.filebrowser-*.css
+js/jquery.filebrowser-*.js
