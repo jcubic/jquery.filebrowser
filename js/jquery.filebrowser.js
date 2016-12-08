@@ -5,7 +5,7 @@
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Tue, 06 Dec 2016 20:55:43 +0000
+ * Date: Thu, 08 Dec 2016 17:15:33 +0000
  */
 (function($, undefined) {
 	$.browse = {
@@ -18,6 +18,7 @@
 			labels: true,
 			on_change: $.noop,
 			on_init: $.noop,
+			item_class: $.noop,
 			refresh_timer: 200
 		},
 		strings: {

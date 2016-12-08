@@ -18,6 +18,7 @@
 			labels: true,
 			on_change: $.noop,
 			on_init: $.noop,
+			item_class: $.noop,
 			refresh_timer: 200
 		},
 		strings: {
