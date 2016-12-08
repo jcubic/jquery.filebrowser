@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery Browse - directory browser jQuery plugin 0.1.0
+ * jQuery Browse - directory browser jQuery plugin 0.2.0
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Thu, 08 Dec 2016 19:58:27 +0000
+ * Date: Thu, 08 Dec 2016 20:03:34 +0000
  */
 (function($, undefined) {
 	$.browse = {

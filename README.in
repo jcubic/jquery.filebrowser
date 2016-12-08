@@ -40,7 +40,7 @@ $(function() {
 			} else if (path == '/bar/') {
 				callback({dirs: [], files: ['lorem', 'ipsum']});
 			} else {
-				callback({files: [], dirs: []});
+				callback(null); // for cases when you type wrong path in address bar
 			}
 		},
 		open: function(filename) {

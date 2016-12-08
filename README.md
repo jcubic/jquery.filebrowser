@@ -1,4 +1,4 @@
-# jQuery File Browser version 0.1.0
+# jQuery File Browser version 0.2.0
 
 jQuery File Browser is a plugin for creating OS like file browsers.
 
@@ -40,7 +40,7 @@ $(function() {
 			} else if (path == '/bar/') {
 				callback({dirs: [], files: ['lorem', 'ipsum']});
 			} else {
-				callback({files: [], dirs: []});
+				callback(null); // for cases when you type wrong path in address bar
 			}
 		},
 		open: function(filename) {

@@ -1,6 +1,6 @@
 {
     "name": "jquery.filebrowser",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "main": [
         "js/jquery.filebrowser.js",
         "css/jquery.filebrowser.css"
@@ -12,11 +12,13 @@
         "README.in",
         "bower.in",
         "Makefile",
+        "Makefile.in",
 		".gitignore",
 		".npmignore",
 		"package.in",
 		"package.json",
-		"bin"
+		"bin",
+		"version"
 		
     ],
     "dependencies": {
