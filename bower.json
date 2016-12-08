@@ -2,17 +2,22 @@
     "name": "jquery.filebrowser",
     "version": "0.1.0",
     "main": [
-        "js/jquery.filebrowser.min.js",
-        "css/jquery.filebrowser.min.css"
+        "js/jquery.filebrowser.js",
+        "css/jquery.filebrowser.css"
     ],
     "description": "jQuery File Browser is a plugin for creating OS like file browsers.",
     "license": "MIT",
     "ignore": [
         "examples",
-        "CHANGELOG",
         "README.in",
         "bower.in",
-        "Makefile"
+        "Makefile",
+		".gitignore",
+		".npmignore",
+		"package.in",
+		"package.json",
+		"bin"
+		
     ],
     "dependencies": {
         "jquery": "~2"

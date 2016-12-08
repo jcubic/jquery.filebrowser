@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Example of jQuery Browse</title>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="../js/jquery.filebrowser-src.js"></script>
+  <script src="http://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+  <link href="http://code.jquery.com/ui/1.12.1/themes/dark-hive/jquery-ui.css" rel="stylesheet"/>
+  <link href="../css/jquery.filebrowser-src.css" rel="stylesheet"/>
+  <style>
+#browser {
+	width: 600px;
+	height: 400px;
+	border: 1px solid gray;
+}
+  </style>
+  <script>
+$(function() {
+	var browse = $('#browser').browse({
+		root: '/',
+		separator: '/',
+		dir: function(path, callback) {
+			if (path == '/') {
+				callback({dirs: ['foo', 'bar'], files: []});
+			} else if (path == '/foo/') {
+				callback({dirs: [], files: ['baz','quux']});
+			} else {
+				callback({files: [], dirs: []});
+			}
+		},
+		open: function(filename) {
+			alert('opening ' + filename);
+		}
+	});
+});
+  </script>
+</head>
+	<div id="browser"></div>
+<body>
+</body>
+</html>
