@@ -75,6 +75,9 @@
 	<symbol id="optical" viewBox="0 0 128 128">
 		<path d="M 63.999999,12.996762 C 35.83085,12.996762 12.996761,35.830851 12.996761,64 c 0,28.169149 22.834089,51.00324 51.003238,51.00324 28.169149,0 51.003241,-22.834091 51.003241,-51.00324 0,-28.169149 -22.834092,-51.003238 -51.003241,-51.003238 z m 0,41.050412 c 5.50281,0 9.952826,4.450016 9.952826,9.952826 0,5.50281 -4.450016,9.952826 -9.952826,9.952826 -5.50281,0 -9.952826,-4.450016 -9.952826,-9.952826 0,-5.50281 4.450016,-9.952826 9.952826,-9.952826 z"/>
 	</symbol>
+	<symbol id="home" viewBox="0 0 128 128">
+		<path d="M 64.012651,19.99884 15.074068,64.689787 c -4.647743,4.243683 -2.257774,11.036593 3.521545,11.036595 l 7.623963,0 0,20.729919 c 0,6.398009 5.146852,11.544859 11.544859,11.544859 l 53.077307,0 c 6.398006,0 11.544858,-5.14685 11.544858,-11.544859 l 0,-20.729919 7.04309,0 c 5.77932,0 8.13298,-6.792912 3.48524,-11.036595 l -16.046627,-14.667053 0,-25.376906 c 0,-1.033238 -0.818296,-1.851535 -1.851534,-1.851535 l -9.947456,0 c -1.033239,0 -1.851534,0.818297 -1.851534,1.851535 l 0,12.888128 L 64.012651,19.99884 z"/>
+	</symbol>
 	<symbol id="" viewBox="0 0 128 128">
 	</symbol>
 			<linearGradient x1="0" y1="0" x2="128" y2="128" id="gradient" gradientUnits="userSpaceOnUse">
@@ -110,6 +113,8 @@
 	
 	<use xlink:href="#drive" style="fill:url(#gradient);fill-opacity:1;stroke:none" transform="translate(0,512)"/>
 	<use xlink:href="#optical" style="fill:url(#gradient);fill-opacity:1;stroke:none" transform="translate(128,512)"/>
+	<use xlink:href="#home" style="fill:url(#gradient);fill-opacity:1;stroke:none" transform="translate(256,512)"/>
+	
 	<use xlink:href="#back" style="fill:url(#gradient);fill-opacity:1;stroke:none" transform="translate(0,640)"/>
 	<use xlink:href="#up" style="fill:url(#gradient);fill-opacity:1;stroke:none" transform="translate(128,640)"/>
 	<use xlink:href="#forward" style="fill:url(#gradient);fill-opacity:1;stroke:none" transform="translate(256,640)"/>

@@ -16,9 +16,11 @@
 			root: '/',
 			separator: '/',
 			labels: true,
-			on_change: $.noop,
-			on_init: $.noop,
+			change: $.noop,
+			init: $.noop,
 			item_class: $.noop,
+			open: $.noop,
+			error: $.noop,
 			refresh_timer: 200
 		},
 		strings: {
@@ -49,24 +51,41 @@
 			var path;
 			var paths = [];
 			var current_content;
-			var $adress = $('<input class="adress-bar"/>').append
 			var $toolbar = $('<ul class="toolbar"></ul>').appendTo(self);
 			if (settings.labels) {
 				$toolbar.addClass('labels');
 			}
+			var $adress_bar = $('<div class="adress-bar"></div>').appendTo($toolbar);
+			$('<button>Home</button>').addClass('home').appendTo($adress_bar);
+			var $adress = $('<input />').appendTo($adress_bar);
 			var toolbar = $.browse.strings.toolbar;
 			Object.keys(toolbar).forEach(function(name) {
 				$('<li/>').text(toolbar[name]).addClass(name).appendTo($toolbar);
 			});
-			$toolbar.on('click', 'li', function() {
+			$toolbar.on('click.browse', 'li', function() {
 				var $this = $(this);
 				if (!$this.hasClass('disabled')) {
 					var name = $this.text();
 					self[name]();
 				}
+			}).on('click', '.home', function() {
+				if (path != settings.root) {
+					self.show(settings.root);
+				}
+			}).on('keypress.browse', 'input', function(e) {
+				if (e.which == 13) {
+					var $this = $(this);
+					var path = $this.val();
+					var re = new RegExp($.browse.escape_regex(settings.separator) + '$');
+					if (!re.test(path)) {
+						path += settings.separator;
+						$this.val(path);
+					}
+					self.show(path);
+				}
 			});
 			var $content = $('<ul/>').appendTo(self);
-			$content.on('dblclick', 'li', function() {
+			$content.on('dblclick.browse', 'li', function() {
 				var $this = $(this);
 				var filename = self.join(path, $this.text());
 				if ($this.hasClass('directory')) {
@@ -125,32 +144,38 @@
 						$toolbar.find('.back').toggleClass('disabled', paths.length == 1);
 						path = new_path;
 						settings.dir(path, function(content) {
-							current_content = content;
-							self.addClass('hidden');
-							$content.empty();
-							current_content.dirs.forEach(function(dir) {
-								var cls = settings.item_class(new_path, dir);
-								var $li = $('<li class="directory">' + dir + '</li>').
-									appendTo($content);
-								if (cls) {
-									$li.addClass(cls);
-								}
-									
-							});
-							current_content.files.forEach(function(file) {
-								var $li = $('<li class="file">' + file + '</li>').
-									appendTo($content);
-								if (file.match('.')) {
-									$li.addClass(file.split('.').pop());
-								}
-								var cls = settings.item_class(new_path, file);
-								if (cls) {
-									$li.addClass(cls);
-								}
-							});
-							self.removeClass('hidden');
-							settings.on_change.call(self);
-							options.callback();
+							if (!content) {
+								settings.error('Invalid directory');
+								self.removeClass('hidden');
+							} else {
+								current_content = content;
+								self.addClass('hidden');
+								$content.empty();
+								current_content.dirs.forEach(function(dir) {
+									var cls = settings.item_class(new_path, dir);
+									var $li = $('<li class="directory">' + dir + '</li>').
+										appendTo($content);
+									if (cls) {
+										$li.addClass(cls);
+									}
+
+								});
+								current_content.files.forEach(function(file) {
+									var $li = $('<li class="file">' + file + '</li>').
+										appendTo($content);
+									if (file.match('.')) {
+										$li.addClass(file.split('.').pop());
+									}
+									var cls = settings.item_class(new_path, file);
+									if (cls) {
+										$li.addClass(cls);
+									}
+								});
+								self.removeClass('hidden');
+								$adress.val(new_path);
+								settings.change.call(self);
+								options.callback();
+							}
 						});
 					}
 					return self;
@@ -185,7 +210,7 @@
 			setTimeout(function() {
 				var path = settings.start_directory || settings.root;
 				self.show(path, {
-					callback: settings.on_init.bind(self)
+					callback: settings.init.bind(self)
 				});
 			}, 0);
 			self.data('browse', self);

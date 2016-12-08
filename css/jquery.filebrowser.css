@@ -5,7 +5,7 @@
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Thu, 08 Dec 2016 17:51:08 +0000
+ * Date: Thu, 08 Dec 2016 19:58:28 +0000
  */
 .browse.hidden, .browse .hidden {
 	visibility: hidden;
@@ -47,6 +47,41 @@
 .browse .toolbar:not(.labels) li{
 	text-indent: -99999px;
 }
+.browse li:before, .browse .adress-bar button {
+	background: transparent url(icons.svg) no-repeat;
+}
+
+.browse .adress-bar button {
+	text-indent: -99999px;
+	width: 32px;
+	height: 32px;
+	border: none;
+	background-position: -64px -128px;
+	cursor: pointer;
+	outline: none;
+}
+.browse .adress-bar input {
+	width: calc(100% - 32px - 10px);
+	border: none;
+	padding: 4px 2px;
+	box-sizing: border-box;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+}
+.browse li:before {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    text-align: center;
+    background-clip: content-box;
+    content: "";
+    position: absolute;
+    top: 0;
+    margin: auto;
+    left: 0;
+    right: 0;
+}
 .browse .toolbar li:not(.disabled):hover:before {
 	background-color: #0b93d5;
 	cursor: pointer;
@@ -62,20 +97,6 @@
 }
 .browse li.refresh:before {
 	background-position: -96px -160px
-}
-.browse li:before {
-    display: inline-block;
-    width: 32px;
-    height: 32px;
-    text-align: center;
-    background: url(icons.svg) no-repeat;
-    background-clip: content-box;
-    content: "";
-    position: absolute;
-    top: 0;
-    margin: auto;
-    left: 0;
-    right: 0;
 }
 .browse .drive:before {
 	background-position: 0 -128px;

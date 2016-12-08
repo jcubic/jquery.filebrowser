@@ -24,9 +24,11 @@ $(function() {
 			if (path == '/') {
 				callback({dirs: ['foo', 'bar'], files: []});
 			} else if (path == '/foo/') {
-				callback({dirs: [], files: ['baz','quux']});
+				callback({dirs: [], files: ['baz', 'quux']});
+			} else if (path == '/bar/') {
+				callback({dirs: [], files: ['lorem', 'ipsum']});
 			} else {
-				callback({files: [], dirs: []});
+				callback(null);
 			}
 		},
 		open: function(filename) {
