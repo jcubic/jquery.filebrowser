@@ -2,6 +2,8 @@
 
 jQuery File Browser is a plugin for creating OS like file browsers.
 
+[Demo](http://codepen.io/jcubic/pen/aBKYRR)
+
 #installation
 
 to install you can grab the files from the repo or install from
