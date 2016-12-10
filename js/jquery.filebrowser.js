@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery Browse - directory browser jQuery plugin 0.2.0
+ * jQuery File Browser - directory browser jQuery plugin version 0.3.0
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Thu, 08 Dec 2016 20:03:34 +0000
+ * Date: Sat, 10 Dec 2016 19:10:22 +0000
  */
 (function($, undefined) {
 	$.browse = {
@@ -20,8 +20,11 @@
 			init: $.noop,
 			item_class: $.noop,
 			open: $.noop,
+			rename: $.noop,
+			copy: $.noop,
+			name: 'default',
 			error: $.noop,
-			refresh_timer: 200
+			refresh_timer: 100
 		},
 		strings: {
 			toolbar: {
@@ -37,6 +40,14 @@
 			}
 		}
 	};
+	var copy;
+	var cut;
+	var selected = {};
+	function is(is_value) {
+		return function(name) {
+			return is_value == name;
+		};
+	}
 	$.fn.browse = function(options) {
 		var settings = $.extend({}, $.browse.defaults, options);
 		if (this.data('browse')) {
@@ -46,8 +57,10 @@
                 $.fn.browse.call($(this), settings);
 			});
 		} else {
+			var cls = 'browser-widget';
+			selected[settings.name] = selected[settings.name] || [];
 			var self = this;
-			self.addClass('browse hidden');
+			self.addClass(cls + ' hidden');
 			var path;
 			var paths = [];
 			var current_content;
@@ -62,6 +75,7 @@
 			Object.keys(toolbar).forEach(function(name) {
 				$('<li/>').text(toolbar[name]).addClass(name).appendTo($toolbar);
 			});
+			var $content = $('<ul/>').addClass('content').appendTo(self);
 			$toolbar.on('click.browse', 'li', function() {
 				var $this = $(this);
 				if (!$this.hasClass('disabled')) {
@@ -76,27 +90,73 @@
 				if (e.which == 13) {
 					var $this = $(this);
 					var path = $this.val();
+					/*
 					var re = new RegExp($.browse.escape_regex(settings.separator) + '$');
 					if (!re.test(path)) {
 						path += settings.separator;
 						$this.val(path);
 					}
+					*/
 					self.show(path);
 				}
 			});
-			var $content = $('<ul/>').appendTo(self);
 			$content.on('dblclick.browse', 'li', function() {
 				var $this = $(this);
+				$this.removeClass('selected');
 				var filename = self.join(path, $this.text());
 				if ($this.hasClass('directory')) {
 					self.show(filename);
 				} else if ($this.hasClass('file')) {
 					settings.open(filename);
 				}
+			}).on('click.browse', 'li', function(e) {
+				var $this = $(this);
+				if (!e.ctrlKey) {
+					$this.siblings().removeClass('selected');
+				}
+				$this.toggleClass('selected');
+				var filename = self.join(path, $this.text());
+				if ($this.hasClass('selected')) {
+					if (!e.ctrlKey) {
+						selected[settings.name] = [];
+					}
+					selected[settings.name].push(filename);
+				} else if (e.ctrlKey) {
+					selected[settings.name] = selected[settings.name]
+						.filter(is(filename));
+				} else {
+					selected[settings.name] = [];
+				}
+			})
+			self.on('click.browse', function() {
+				$('.' + cls).removeClass('selected');
+				$(this).addClass('selected');
 			});
+			function keydown(e) {
+				if (self.hasClass('selected')) {
+					if (e.ctrlKey) {
+						if (e.which == 67) { // CTRL+C
+							self.copy();
+						} else if (e.which == 88) { // CTRL+X
+							self.cut();
+						} else if (e.which == 86) { // CTRL+V
+							self.paste(cut);
+						}
+					}
+				}
+			}
+			function click(e) {
+				if (!$(e.target).closest('.' + cls).length) {
+					$('.browser-widget').removeClass('selected');
+				}
+			}
+			$(document).on('click', click).on('keydown', keydown);
 			$.extend(self, {
 				path: function() {
 					return path;
+				},
+				name: function() {
+					return settings.name;
 				},
 				current: function() {
 					return current;
@@ -105,6 +165,56 @@
 					paths.pop();
 					self.show(paths[paths.length-1], {push: false});
 					return self;
+				},
+				destroy: function() {
+					self.off('.browse');
+					$(document).off('click', click).off('keydown', keydown);
+					$adress_bar.remove();
+					$content.remove();
+				},
+				_rename: function(src, dest) {
+					settings.rename(src, dest);
+				},
+				_copy: function(src, dest) {
+					settings.copy(src, dest);
+				},
+				copy: function() {
+					copy = {
+						path: path,
+						contents: selected[settings.name],
+						source: self
+					};
+					cut = false;
+				},
+				cut: function() {
+					self.copy();
+					cut = true;
+				},
+				paste: function(cut) {
+					function process(widget, fn) {
+						copy.contents.forEach(function(src) {
+							var name = widget.split(src).pop();
+							var dest = widget.join(path, name);
+							if (src != dest) {
+								widget[fn](src, dest);
+							}
+						});
+					}
+					if (copy && copy.contents && copy.contents.length) {
+						if (self.name() !== copy.source.name()) {
+							throw new Error("You can't paste across different filesystems");
+						} else {
+							if (cut) {
+								process(self, '_rename');
+							} else {
+								process(self, '_copy');
+							}
+							self.refresh();
+							if (self !== copy.source) {
+								copy.source.refresh();
+							}
+						}
+					}
 				},
 				up: function() {
 					var dirs = self.split(path);
@@ -185,15 +295,16 @@
 					var path = paths.map(function(path) {
 						var re = new RegExp($.browse.escape_regex(settings.separator) + '$', '');
 						return path.replace(re, '');
-					}).filter(Boolean).join(settings.separator) + settings.separator;
+					}).filter(Boolean).join(settings.separator);// + settings.separator;
 					var re = new RegExp('^' + $.browse.escape_regex(settings.root));
 					return re.test(path) ? path : settings.root + path;
 				},
 				split: function(filename) {
-					var re = new RegExp('^' + $.browse.escape_regex(settings.root));
-					filename = filename.replace(re, '');
+					var root = new RegExp('^' + $.browse.escape_regex(settings.root));
+					var separator = new RegExp($.browse.escape_regex(settings.separator) + '$');
+					filename = filename.replace(root, '').replace(separator, '');
 					if (filename) {
-						return filename.split(settings.separator).slice(0, -1);
+						return filename.split(settings.separator);
 					} else {
 						return [];
 					}
@@ -202,7 +313,7 @@
 					var path = this.split(filename);
 					var result;
 					while(path.length) {
-						result = fn(path.shift(), filename);
+						result = fn(path.shift(), !path.length);
 					}
 					return result;
 				}
