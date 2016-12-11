@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.3.0
+ * jQuery File Browser - directory browser jQuery plugin version 0.4.0
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Sun, 11 Dec 2016 17:33:20 +0000
+ * Date: Sun, 11 Dec 2016 18:25:05 +0000
  */
 (function($, undefined) {
 	$.browse = {
@@ -43,6 +43,7 @@
 	var copy;
 	var cut;
 	var selected = {};
+	var drag;
 	function is(is_value) {
 		return function(name) {
 			return is_value == name;
@@ -132,12 +133,45 @@
 					selected[settings.name] = [];
 				}
 			});
+			self.on('dragover', '.content', function() {
+				return false;
+			}).on('dragstart', '.content li', function() {
+				var name = $(this).text();
+				drag = {
+					name: name,
+					path: path,
+					context: self
+				};
+			});
+			function same_root(src, dest) {
+				return src === dest || dest.match(new RegExp('^' + $.browse.escape_regex(src)));
+			}
+			$content.on('drop', function(e) {
+				var $target = $(e.target);
+				var dest;
+				if ($target.is('.directory')) {
+					dest = self.join(path, $target.text(), drag.name);
+				} else {
+					dest = self.join(path, drag.name);
+				}
+				if (self.name() !== drag.context.name()) {
+					throw new Error("You can't drag across different filesystems");
+				}
+				var src = self.join(drag.path, drag.name);
+				if (!same_root(src, dest)) {
+					self._rename(src, dest);
+					self.refresh();
+					if (self !== drag.context) {
+						drag.context.refresh();
+					}
+				}
+				return false;
+			});
 			function keydown(e) {
 				if (self.hasClass('selected')) {
 					if (e.ctrlKey) {
 						if (e.which == 67) { // CTRL+C
 							self.copy();
-							console.log(selected[settings.name].slice());
 						} else if (e.which == 88) { // CTRL+X
 							self.cut();
 						} else if (e.which == 86) { // CTRL+V
@@ -220,7 +254,9 @@
 					$content.remove();
 				},
 				_rename: function(src, dest) {
-					settings.rename(src, dest);
+					if (!same_root(src, dest)) {
+						settings.rename(src, dest);
+					}
 				},
 				_copy: function(src, dest) {
 					settings.copy(src, dest);
@@ -242,7 +278,7 @@
 						copy.contents.forEach(function(src) {
 							var name = widget.split(src).pop();
 							var dest = widget.join(path, name);
-							if (src != dest) {
+							if (!same_root(src, dest)) {
 								widget[fn](src, dest);
 							}
 						});
@@ -311,7 +347,7 @@
 								current_content.dirs.forEach(function(dir) {
 									var cls = settings.item_class(new_path, dir);
 									var $li = $('<li class="directory">' + dir + '</li>').
-										appendTo($content);
+										appendTo($content).attr('draggable', true);
 									if (cls) {
 										$li.addClass(cls);
 									}
@@ -319,7 +355,7 @@
 								});
 								current_content.files.forEach(function(file) {
 									var $li = $('<li class="file">' + file + '</li>').
-										appendTo($content);
+										appendTo($content).attr('draggable', true);
 									if (file.match('.')) {
 										$li.addClass(file.split('.').pop());
 									}

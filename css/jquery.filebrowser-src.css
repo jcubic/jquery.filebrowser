@@ -15,6 +15,15 @@
 	margin: 0;
 	padding: 0;
 }
+.browser-widget li[draggable] {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Required to make elements draggable in old WebKit */
+  -khtml-user-drag: element;
+  -webkit-user-drag: element;
+}
 .browser-widget li {
     display: inline-block;
     position: relative;

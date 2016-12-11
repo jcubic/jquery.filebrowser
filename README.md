@@ -1,4 +1,4 @@
-# jQuery File Browser version 0.3.0
+# jQuery File Browser version 0.4.0
 
 jQuery File Browser is a plugin for creating OS like file browsers.
 
