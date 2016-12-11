@@ -5,7 +5,7 @@
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Sat, 10 Dec 2016 19:10:22 +0000
+ * Date: Sun, 11 Dec 2016 17:33:20 +0000
  */
 (function($, undefined) {
 	$.browse = {
@@ -76,6 +76,7 @@
 				$('<li/>').text(toolbar[name]).addClass(name).appendTo($toolbar);
 			});
 			var $content = $('<ul/>').addClass('content').appendTo(self);
+			//$content.wrap('<div/>').parent().addClass('content');
 			$toolbar.on('click.browse', 'li', function() {
 				var $this = $(this);
 				if (!$this.hasClass('disabled')) {
@@ -90,21 +91,14 @@
 				if (e.which == 13) {
 					var $this = $(this);
 					var path = $this.val();
-					/*
-					var re = new RegExp($.browse.escape_regex(settings.separator) + '$');
-					if (!re.test(path)) {
-						path += settings.separator;
-						$this.val(path);
-					}
-					*/
 					self.show(path);
 				}
 			});
 			$content.on('dblclick.browse', 'li', function() {
 				var $this = $(this);
-				$this.removeClass('selected');
 				var filename = self.join(path, $this.text());
 				if ($this.hasClass('directory')) {
+					$this.removeClass('selected');
 					self.show(filename);
 				} else if ($this.hasClass('file')) {
 					settings.open(filename);
@@ -128,19 +122,72 @@
 					selected[settings.name] = [];
 				}
 			})
-			self.on('click.browse', function() {
+			self.on('click.browse', function(e) {
 				$('.' + cls).removeClass('selected');
 				$(this).addClass('selected');
+				var $target = $(e.target);
+				if (!e.ctrlKey && !$target.is('.content li') &&
+					!$target.closest('.toolbar').length) {
+					$content.find('li').removeClass('selected');
+					selected[settings.name] = [];
+				}
 			});
 			function keydown(e) {
 				if (self.hasClass('selected')) {
 					if (e.ctrlKey) {
 						if (e.which == 67) { // CTRL+C
 							self.copy();
+							console.log(selected[settings.name].slice());
 						} else if (e.which == 88) { // CTRL+X
 							self.cut();
 						} else if (e.which == 86) { // CTRL+V
 							self.paste(cut);
+						}
+					} else if (e.which == 8) { // BACKSPACE
+						self.back();
+					} else {
+						var $selected = $content.find('.selected');
+						if (e.which == 13 && $selected.length) {
+							$selected.dblclick();
+						} else {
+							if (e.which >= 37 && e.which <= 40) {
+								var current_item;
+								var $li = $content.find('li');
+								if (!$selected.length) {
+									$selected = $content.find('li:eq(0)');
+									current_item = 0;
+								} else {
+									$selected.removeClass('selected');
+									var browse_width = $content.prop('clientWidth');
+									var length = $li.length;
+									var width = $content.find('li:eq(0)').outerWidth(true);
+									var each_row = Math.floor(browse_width/width);
+									current_item = $selected.index();
+									if (e.which == 37) { // LEFT
+										current_item--;
+									} else if (e.which == 38) { // UP
+										current_item = current_item-each_row;
+									} else if (e.which == 39) { // RIGHT
+										current_item++;
+									} else if (e.which == 40) { // DOWN
+										current_item = current_item+each_row;
+									}
+									if (current_item < 0) {
+										current_item = 0;
+									} else if (current_item > length-1) {
+										current_item = length-1;
+									}
+								}
+								if (e.which >= 37 && e.which <= 40) {
+									var $new_selection = $li.eq(current_item).addClass('selected');
+									var filename = self.join(path, $new_selection.text());
+									if ($new_selection.length) {
+										selected[settings.name] = [filename];
+									} else {
+										selected[settings.name] = [];
+									}
+								}
+							}
 						}
 					}
 				}

@@ -5,7 +5,7 @@
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Sat, 10 Dec 2016 19:10:23 +0000
+ * Date: Sun, 11 Dec 2016 17:33:21 +0000
  */
 .browser-widget.hidden, .browser-widget .hidden {
 	visibility: hidden;
@@ -28,7 +28,7 @@
     -ms-user-select: none;      /* IE 10+ */
     user-select: none;          /* Likely future */
     vertical-align: top;
-	width: 40px;
+    width: 40px;
 }
 .browser-widget {
 	font-family: sans-serif;
@@ -66,6 +66,10 @@
 	-webkit-border-radius: 3px;
 	-moz-border-radius: 3px;
 	border-radius: 3px;
+}
+.browser-widget .content {
+	overflow: auto;
+	height: calc(100% - 88px);
 }
 .browser-widget .content li.selected::after {
 	content: "";

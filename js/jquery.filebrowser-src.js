@@ -91,13 +91,6 @@
 				if (e.which == 13) {
 					var $this = $(this);
 					var path = $this.val();
-					/*
-					var re = new RegExp($.browse.escape_regex(settings.separator) + '$');
-					if (!re.test(path)) {
-						path += settings.separator;
-						$this.val(path);
-					}
-					*/
 					self.show(path);
 				}
 			});
