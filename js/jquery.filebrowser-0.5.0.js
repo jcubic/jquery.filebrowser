@@ -5,7 +5,7 @@
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Sat, 17 Dec 2016 15:20:26 +0000
+ * Date: Sat, 17 Dec 2016 15:47:29 +0000
  */
 (function($, undefined) {
 	$.browse = {
@@ -188,18 +188,19 @@
 					}
 				}
 				return false;
-			}).on('mousedown.browse', function(e) {
+			})
+			$ul.on('mousedown.browse', function(e) {
 				$selection.show();
 				selection = true;
 				was_selecting = false;
 				self.addClass('no-select');
-				var offset = $content.offset();
+				var offset = $ul.offset();
 				x1 = e.clientX - offset.left;
 				y1 = e.clientY - offset.top;
 				draw_selection();
 			});
 			function mousemove(e) {
-				var offset = $content.offset();
+				var offset = $ul.offset();
 				x2 = e.clientX - offset.left;
 				y2 = e.clientY - offset.top + $content.scrollTop();
 				draw_selection();

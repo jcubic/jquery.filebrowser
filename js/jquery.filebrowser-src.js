@@ -194,13 +194,13 @@
 				selection = true;
 				was_selecting = false;
 				self.addClass('no-select');
-				var offset = $content.offset();
+				var offset = $ul.offset();
 				x1 = e.clientX - offset.left;
 				y1 = e.clientY - offset.top;
 				draw_selection();
 			});
 			function mousemove(e) {
-				var offset = $content.offset();
+				var offset = $ul.offset();
 				x2 = e.clientX - offset.left;
 				y2 = e.clientY - offset.top + $content.scrollTop();
 				draw_selection();
