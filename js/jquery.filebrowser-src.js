@@ -188,7 +188,8 @@
 					}
 				}
 				return false;
-			}).on('mousedown.browse', function(e) {
+			})
+			$ul.on('mousedown.browse', function(e) {
 				$selection.show();
 				selection = true;
 				was_selecting = false;
