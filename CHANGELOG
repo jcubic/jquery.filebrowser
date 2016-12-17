@@ -1,4 +1,4 @@
-0.5.0    dragging selection
+0.5.0    dragging selection, rectangle selection
 0.4.0    navigation using keyboard, fix scrollbar on content, fix cut/copy, drag and drop
 0.3.0    Moving/copying files using copy/cut/paste and new api methods
 0.2.0    Address bar and change callback function names

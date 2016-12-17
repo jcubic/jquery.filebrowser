@@ -76,8 +76,12 @@
 			Object.keys(toolbar).forEach(function(name) {
 				$('<li/>').text(toolbar[name]).addClass(name).appendTo($toolbar);
 			});
-			var $content = $('<ul/>').addClass('content').appendTo(self);
-			//$content.wrap('<div/>').parent().addClass('content');
+			var $content = $('<ul/>').wrap('<div/>').parent().addClass('content').appendTo(self);
+			var $ul = $content.find('ul');
+			var x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+			var $selection = $('<div/>').addClass('selection').hide().appendTo($content);
+			var selection = false;
+			var was_selecting = false;
 			$toolbar.on('click.browse', 'li', function() {
 				var $this = $(this);
 				if (!$this.hasClass('disabled')) {
@@ -124,16 +128,18 @@
 				}
 			})
 			self.on('click.browse', function(e) {
-				$('.' + cls).removeClass('selected');
-				$(this).addClass('selected');
-				var $target = $(e.target);
-				if (!e.ctrlKey && !$target.is('.content li') &&
-					!$target.closest('.toolbar').length) {
-					$content.find('li').removeClass('selected');
-					selected[settings.name] = [];
+				if (!was_selecting) {
+					$('.' + cls).removeClass('selected');
+					$(this).addClass('selected');
+					var $target = $(e.target);
+					if (!e.ctrlKey && !$target.is('.content li') &&
+						!$target.closest('.toolbar').length) {
+						$content.find('li').removeClass('selected');
+						selected[settings.name] = [];
+					}
 				}
 			});
-			self.on('dragover', '.content', function() {
+			self.on('dragover.browse', '.content', function() {
 				return false;
 			}).on('dragstart', '.content li', function() {
 				var $this = $(this);
@@ -150,7 +156,7 @@
 			function same_root(src, dest) {
 				return src === dest || dest.match(new RegExp('^' + $.browse.escape_regex(src)));
 			}
-			$content.on('drop', function(e) {
+			$content.on('drop.browse', function(e) {
 				var $target = $(e.target);
 				var dest;
 				if ($target.is('.directory')) {
@@ -182,7 +188,76 @@
 					}
 				}
 				return false;
+			}).on('mousedown.browse', function(e) {
+				$selection.show();
+				selection = true;
+				was_selecting = false;
+				self.addClass('no-select');
+				var offset = $content.offset();
+				x1 = e.clientX - offset.left;
+				y1 = e.clientY - offset.top;
+				draw_selection();
 			});
+			function mousemove(e) {
+				var offset = $content.offset();
+				x2 = e.clientX - offset.left;
+				y2 = e.clientY - offset.top + $content.scrollTop();
+				draw_selection();
+				if (selection) {
+					was_selecting = true;
+					var $li = $content.find('li');
+					if (!e.ctrlKey) {
+						$li.removeClass('selected');
+					}
+					var selection_offset = $selection.offset();
+					var selection_width = $selection.width();
+					var selection_height = $selection.height();
+					var $selected = $li.filter(function() {
+						var self = $(this);
+						var offset = self.offset();
+						var height = self.height();
+						var width = self.width();
+						return (offset.left > selection_offset.left
+							&& selection_offset.left + selection_width > offset.left
+							&& offset.top > selection_offset.top
+							&& selection_offset.top + selection_height > offset.top)
+							|| (offset.left < selection_offset.left
+							&& offset.left + width > selection_offset.left
+							&& offset.top + height > selection_offset.top
+							&& offset.top < selection_offset.top + selection_height)
+							|| (offset.left < selection_offset.left + selection_width
+							&& offset.left > selection_offset.left
+							&& offset.top < selection_offset.top + selection_height
+							&& offset.top + height > selection_offset.top);
+					});
+					$selected.addClass('selected');
+				}
+			}
+			function mouseup(e) {
+				selection = false;
+				$selection.hide();
+				self.removeClass('no-select');
+			}
+			function draw_selection(e) {
+				var x3 = Math.max(Math.min(x1, x2), 0);
+				var y3 = Math.max(Math.min(y1, y2), 0);
+				var x4 = Math.max(x1, x2);
+				var y4 = Math.max(y1, y2);
+				var width = $content.prop('clientWidth');
+				var height = $content.height() + $content.scrollTop() - 2;
+				if (x4 > width) {
+					x4 = width;
+				}
+				if (y4 > height) {
+					y4 = height;
+				}
+				$selection.css({
+					left: x3,
+					top: y3,
+					width: x4 - x3,
+					height: y4 - y3
+				});
+			}
 			function keydown(e) {
 				if (self.hasClass('selected')) {
 					if (e.ctrlKey) {
@@ -247,7 +322,10 @@
 					$('.browser-widget').removeClass('selected');
 				}
 			}
-			$(document).on('click', click).on('keydown', keydown);
+			$(document).on('click', click)
+				.on('keydown', keydown)
+				.on('mousemove', mousemove)
+				.on('mouseup', mouseup);
 			$.extend(self, {
 				path: function() {
 					return path;
@@ -359,11 +437,11 @@
 							} else {
 								current_content = content;
 								self.addClass('hidden');
-								$content.empty();
+								$ul.empty();
 								current_content.dirs.forEach(function(dir) {
 									var cls = settings.item_class(new_path, dir);
 									var $li = $('<li class="directory">' + dir + '</li>').
-										appendTo($content).attr('draggable', true);
+										appendTo($ul).attr('draggable', true);
 									if (cls) {
 										$li.addClass(cls);
 									}
@@ -371,7 +449,7 @@
 								});
 								current_content.files.forEach(function(file) {
 									var $li = $('<li class="file">' + file + '</li>').
-										appendTo($content).attr('draggable', true);
+										appendTo($ul).attr('draggable', true);
 									if (file.match('.')) {
 										$li.addClass(file.split('.').pop());
 									}

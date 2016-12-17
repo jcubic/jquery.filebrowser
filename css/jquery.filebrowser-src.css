@@ -28,13 +28,15 @@
     text-align: center;
     margin: 5px;
     word-break: break-word;
+    vertical-align: top;
+    width: 40px;
+}
+.browser-widget li, .browser-widget.no-select * {
 	-khtml-user-select: none;
     -webkit-user-select: none;  /* Chrome all / Safari all */
     -moz-user-select: none;     /* Firefox all */
     -ms-user-select: none;      /* IE 10+ */
     user-select: none;          /* Likely future */
-    vertical-align: top;
-    width: 40px;
 }
 .browser-widget {
 	font-family: sans-serif;
@@ -54,7 +56,6 @@
 .browser-widget li:before, .browser-widget .adress-bar button {
 	background: transparent url(icons.svg) no-repeat;
 }
-
 .browser-widget .adress-bar button {
 	text-indent: -99999px;
 	width: 32px;
@@ -76,6 +77,11 @@
 .browser-widget .content {
 	overflow: auto;
 	height: calc(100% - 88px);
+	position: relative;
+}
+.browser-widget .content .selection {
+    border: 1px dotted #000;
+    position: absolute;
 }
 .browser-widget .content li.selected::after {
 	content: "";
