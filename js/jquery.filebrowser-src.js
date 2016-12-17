@@ -190,14 +190,16 @@
 				return false;
 			})
 			$ul.on('mousedown.browse', function(e) {
-				$selection.show();
-				selection = true;
-				was_selecting = false;
-				self.addClass('no-select');
-				var offset = $ul.offset();
-				x1 = e.clientX - offset.left;
-				y1 = e.clientY - offset.top;
-				draw_selection();
+				if (!$(e.target).is('li')) {
+					$selection.show();
+					selection = true;
+					was_selecting = false;
+					self.addClass('no-select');
+					var offset = $ul.offset();
+					x1 = e.clientX - offset.left;
+					y1 = e.clientY - offset.top;
+					draw_selection();
+				}
 			});
 			function mousemove(e) {
 				var offset = $ul.offset();
@@ -209,29 +211,19 @@
 					var $li = $content.find('li');
 					if (!e.ctrlKey) {
 						$li.removeClass('selected');
+						selected[settings.name] = [];
 					}
-					var selection_offset = $selection.offset();
-					var selection_width = $selection.width();
-					var selection_height = $selection.height();
+					var selection_rect = $selection[0].getBoundingClientRect();
 					var $selected = $li.filter(function() {
-						var self = $(this);
-						var offset = self.offset();
-						var height = self.height();
-						var width = self.width();
-						return (offset.left > selection_offset.left
-							&& selection_offset.left + selection_width > offset.left
-							&& offset.top > selection_offset.top
-							&& selection_offset.top + selection_height > offset.top)
-							|| (offset.left < selection_offset.left
-							&& offset.left + width > selection_offset.left
-							&& offset.top + height > selection_offset.top
-							&& offset.top < selection_offset.top + selection_height)
-							|| (offset.left < selection_offset.left + selection_width
-							&& offset.left > selection_offset.left
-							&& offset.top < selection_offset.top + selection_height
-							&& offset.top + height > selection_offset.top);
+						var rect = this.getBoundingClientRect();
+						return rect.top + rect.height > selection_rect.top
+							&& rect.left + rect.width > selection_rect.left
+							&& rect.bottom - rect.height < selection_rect.bottom
+							&& rect.right - rect.width < selection_rect.right;
 					});
-					$selected.addClass('selected');
+					$selected.addClass('selected').each(function() {
+						selected[settings.name].push(self.join(path, $(this).text()));
+					});
 				}
 			}
 			function mouseup(e) {
