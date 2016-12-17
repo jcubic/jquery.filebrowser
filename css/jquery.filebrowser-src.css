@@ -16,10 +16,6 @@
 	padding: 0;
 }
 .browser-widget li[draggable] {
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
   /* Required to make elements draggable in old WebKit */
   -khtml-user-drag: element;
   -webkit-user-drag: element;
@@ -32,6 +28,7 @@
     text-align: center;
     margin: 5px;
     word-break: break-word;
+	-khtml-user-select: none;
     -webkit-user-select: none;  /* Chrome all / Safari all */
     -moz-user-select: none;     /* Firefox all */
     -ms-user-select: none;      /* IE 10+ */

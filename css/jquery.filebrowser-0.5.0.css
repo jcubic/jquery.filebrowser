@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.4.0
+ * jQuery File Browser - directory browser jQuery plugin version 0.5.0
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Sun, 11 Dec 2016 18:25:06 +0000
+ * Date: Sat, 17 Dec 2016 13:04:54 +0000
  */
 .browser-widget.hidden, .browser-widget .hidden {
 	visibility: hidden;
@@ -16,10 +16,6 @@
 	padding: 0;
 }
 .browser-widget li[draggable] {
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
   /* Required to make elements draggable in old WebKit */
   -khtml-user-drag: element;
   -webkit-user-drag: element;
@@ -32,6 +28,7 @@
     text-align: center;
     margin: 5px;
     word-break: break-word;
+	-khtml-user-select: none;
     -webkit-user-select: none;  /* Chrome all / Safari all */
     -moz-user-select: none;     /* Firefox all */
     -ms-user-select: none;      /* IE 10+ */

@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.4.0
+ * jQuery File Browser - directory browser jQuery plugin version 0.5.0
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Sun, 11 Dec 2016 18:25:05 +0000
+ * Date: Sat, 17 Dec 2016 13:04:52 +0000
  */
 (function($, undefined) {
 	$.browse = {
@@ -136,12 +136,16 @@
 			self.on('dragover', '.content', function() {
 				return false;
 			}).on('dragstart', '.content li', function() {
-				var name = $(this).text();
+				var $this = $(this);
+				var name = $this.text();
 				drag = {
 					name: name,
 					path: path,
 					context: self
 				};
+				if ($this.hasClass('selected')) {
+					drag.selection = true;
+				}
 			});
 			function same_root(src, dest) {
 				return src === dest || dest.match(new RegExp('^' + $.browse.escape_regex(src)));
@@ -157,12 +161,24 @@
 				if (self.name() !== drag.context.name()) {
 					throw new Error("You can't drag across different filesystems");
 				}
-				var src = self.join(drag.path, drag.name);
-				if (!same_root(src, dest)) {
-					self._rename(src, dest);
+				if (drag.selection) {
+					selected[settings.name].forEach(function(src) {
+						if (!same_root(src, dest)) {
+							self._rename(src, dest);
+						}
+					});
 					self.refresh();
 					if (self !== drag.context) {
 						drag.context.refresh();
+					}
+				} else {
+					var src = self.join(drag.path, drag.name);
+					if (!same_root(src, dest)) {
+						self._rename(src, dest);
+						self.refresh();
+						if (self !== drag.context) {
+							drag.context.refresh();
+						}
 					}
 				}
 				return false;
