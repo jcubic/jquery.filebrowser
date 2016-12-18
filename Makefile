@@ -1,4 +1,4 @@
-VERSION=0.5.1
+VERSION=0.5.2
 COMPRESS=uglifyjs
 SED=sed
 CP=cp

@@ -257,9 +257,9 @@
 				}
 			});
 			self.on('click.browse', function(e) {
+				$(this).addClass('selected');
 				if (!was_selecting) {
 					$('.' + cls).removeClass('selected');
-					$(this).addClass('selected');
 					var $target = $(e.target);
 					if (!e.ctrlKey && !$target.is('.content li') &&
 						!$target.closest('.toolbar').length) {
