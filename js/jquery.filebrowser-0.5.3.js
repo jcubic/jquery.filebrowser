@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.5.2
+ * jQuery File Browser - directory browser jQuery plugin version 0.5.3
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Sun, 18 Dec 2016 19:12:07 +0000
+ * Date: Sun, 18 Dec 2016 19:26:27 +0000
  */
 (function($, undefined) {
 	'use strict';
