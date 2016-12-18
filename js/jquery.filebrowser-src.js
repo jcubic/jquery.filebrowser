@@ -8,6 +8,7 @@
  * Date: {{DATE}}
  */
 (function($, undefined) {
+	'use strict';
 	$.browse = {
 		defaults: {
 			dir: function() {
@@ -49,8 +50,136 @@
 			return is_value == name;
 		};
 	}
+	function same_root(src, dest) {
+		return src === dest || dest.match(new RegExp('^' + $.browse.escape_regex(src)));
+	}
+	
+	function all_parents_fun(fun, element) {
+		var $element = $(element);
+		return $element.parents().add('html,body').map(function() {
+			return $(this)[fun]();
+		}).get().reduce(function(sum, prop) {
+			return sum + prop;
+		});
+	}
 	$.fn.browse = function(options) {
 		var settings = $.extend({}, $.browse.defaults, options);
+		function mousemove(e) {
+			if (selection) {
+				var offset = $ul.offset();
+				x2 = e.clientX - offset.left;
+				y2 = e.clientY - offset.top;
+				$selection.show();
+				draw_selection();
+				was_selecting = true;
+				var $li = $content.find('li');
+				if (!e.ctrlKey) {
+					$li.removeClass('selected');
+					selected[settings.name] = [];
+				}
+				var selection_rect = $selection[0].getBoundingClientRect();
+				var $selected = $li.filter(function() {
+					var rect = this.getBoundingClientRect();
+					return rect.top + rect.height > selection_rect.top &&
+						rect.left + rect.width > selection_rect.left &&
+						rect.bottom - rect.height < selection_rect.bottom &&
+						rect.right - rect.width < selection_rect.right;
+				});
+				$selected.addClass('selected').each(function() {
+					selected[settings.name].push(self.join(path, $(this).text()));
+				});
+			}
+		}
+		function mouseup(e) {
+			selection = false;
+			$selection.hide();
+			self.removeClass('no-select');
+		}
+		function draw_selection(e) {
+			var top = all_parents_fun('scrollTop', $content);
+			var x3 = Math.max(Math.min(x1, x2), 0);
+			var y3 = Math.max(Math.min(y1, y2), -top);
+			var x4 = Math.max(x1, x2);
+			var y4 = Math.max(y1, y2);
+			var width = $content.prop('clientWidth');
+			var height = $content.height() + $content.scrollTop() - 2;
+			if (x4 > width) {
+				x4 = width;
+			}
+			if (y4 > height) {
+				y4 = height;
+			}
+			$selection.css({
+				left: x3,
+				top: y3 + top,
+				width: x4 - x3,
+				height: y4 - y3
+			});
+		}
+		function keydown(e) {
+			if (self.hasClass('selected')) {
+				if (e.ctrlKey) {
+					if (e.which == 67) { // CTRL+C
+						self.copy();
+					} else if (e.which == 88) { // CTRL+X
+						self.cut();
+					} else if (e.which == 86) { // CTRL+V
+						self.paste(cut);
+					}
+				} else if (e.which == 8) { // BACKSPACE
+					self.back();
+				} else {
+					var $selected = $content.find('.selected');
+					if (e.which == 13 && $selected.length) {
+						$selected.dblclick();
+					} else {
+						if (e.which >= 37 && e.which <= 40) {
+							var current_item;
+							var $li = $content.find('li');
+							if (!$selected.length) {
+								$selected = $content.find('li:eq(0)');
+								current_item = 0;
+							} else {
+								$selected.removeClass('selected');
+								var browse_width = $content.prop('clientWidth');
+								var length = $li.length;
+								var width = $content.find('li:eq(0)').outerWidth(true);
+								var each_row = Math.floor(browse_width/width);
+								current_item = $selected.index();
+								if (e.which == 37) { // LEFT
+									current_item--;
+								} else if (e.which == 38) { // UP
+									current_item = current_item-each_row;
+								} else if (e.which == 39) { // RIGHT
+									current_item++;
+								} else if (e.which == 40) { // DOWN
+									current_item = current_item+each_row;
+								}
+								if (current_item < 0) {
+									current_item = 0;
+								} else if (current_item > length-1) {
+									current_item = length-1;
+								}
+							}
+							if (e.which >= 37 && e.which <= 40) {
+								var $new_selection = $li.eq(current_item).addClass('selected');
+								var filename = self.join(path, $new_selection.text());
+								if ($new_selection.length) {
+									selected[settings.name] = [filename];
+								} else {
+									selected[settings.name] = [];
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		function click(e) {
+			if (!$(e.target).closest('.' + cls).length) {
+				$('.browser-widget').removeClass('selected');
+			}
+		}
 		if (this.data('browse')) {
 			return this.data('browse');
 		} else if (this.length > 1) {
@@ -126,7 +255,7 @@
 				} else {
 					selected[settings.name] = [];
 				}
-			})
+			});
 			self.on('click.browse', function(e) {
 				if (!was_selecting) {
 					$('.' + cls).removeClass('selected');
@@ -153,9 +282,6 @@
 					drag.selection = true;
 				}
 			});
-			function same_root(src, dest) {
-				return src === dest || dest.match(new RegExp('^' + $.browse.escape_regex(src)));
-			}
 			$content.on('drop.browse', function(e) {
 				var $target = $(e.target);
 				var dest;
@@ -188,133 +314,17 @@
 					}
 				}
 				return false;
-			})
+			});
 			$ul.on('mousedown.browse', function(e) {
 				if (!$(e.target).is('li')) {
-					$selection.show();
 					selection = true;
 					was_selecting = false;
 					self.addClass('no-select');
 					var offset = $ul.offset();
 					x1 = e.clientX - offset.left;
 					y1 = e.clientY - offset.top;
-					draw_selection();
 				}
 			});
-			function mousemove(e) {
-				var offset = $ul.offset();
-				x2 = e.clientX - offset.left;
-				y2 = e.clientY - offset.top + $content.scrollTop();
-				draw_selection();
-				if (selection) {
-					was_selecting = true;
-					var $li = $content.find('li');
-					if (!e.ctrlKey) {
-						$li.removeClass('selected');
-						selected[settings.name] = [];
-					}
-					var selection_rect = $selection[0].getBoundingClientRect();
-					var $selected = $li.filter(function() {
-						var rect = this.getBoundingClientRect();
-						return rect.top + rect.height > selection_rect.top
-							&& rect.left + rect.width > selection_rect.left
-							&& rect.bottom - rect.height < selection_rect.bottom
-							&& rect.right - rect.width < selection_rect.right;
-					});
-					$selected.addClass('selected').each(function() {
-						selected[settings.name].push(self.join(path, $(this).text()));
-					});
-				}
-			}
-			function mouseup(e) {
-				selection = false;
-				$selection.hide();
-				self.removeClass('no-select');
-			}
-			function draw_selection(e) {
-				var x3 = Math.max(Math.min(x1, x2), 0);
-				var y3 = Math.max(Math.min(y1, y2), 0);
-				var x4 = Math.max(x1, x2);
-				var y4 = Math.max(y1, y2);
-				var width = $content.prop('clientWidth');
-				var height = $content.height() + $content.scrollTop() - 2;
-				if (x4 > width) {
-					x4 = width;
-				}
-				if (y4 > height) {
-					y4 = height;
-				}
-				$selection.css({
-					left: x3,
-					top: y3,
-					width: x4 - x3,
-					height: y4 - y3
-				});
-			}
-			function keydown(e) {
-				if (self.hasClass('selected')) {
-					if (e.ctrlKey) {
-						if (e.which == 67) { // CTRL+C
-							self.copy();
-						} else if (e.which == 88) { // CTRL+X
-							self.cut();
-						} else if (e.which == 86) { // CTRL+V
-							self.paste(cut);
-						}
-					} else if (e.which == 8) { // BACKSPACE
-						self.back();
-					} else {
-						var $selected = $content.find('.selected');
-						if (e.which == 13 && $selected.length) {
-							$selected.dblclick();
-						} else {
-							if (e.which >= 37 && e.which <= 40) {
-								var current_item;
-								var $li = $content.find('li');
-								if (!$selected.length) {
-									$selected = $content.find('li:eq(0)');
-									current_item = 0;
-								} else {
-									$selected.removeClass('selected');
-									var browse_width = $content.prop('clientWidth');
-									var length = $li.length;
-									var width = $content.find('li:eq(0)').outerWidth(true);
-									var each_row = Math.floor(browse_width/width);
-									current_item = $selected.index();
-									if (e.which == 37) { // LEFT
-										current_item--;
-									} else if (e.which == 38) { // UP
-										current_item = current_item-each_row;
-									} else if (e.which == 39) { // RIGHT
-										current_item++;
-									} else if (e.which == 40) { // DOWN
-										current_item = current_item+each_row;
-									}
-									if (current_item < 0) {
-										current_item = 0;
-									} else if (current_item > length-1) {
-										current_item = length-1;
-									}
-								}
-								if (e.which >= 37 && e.which <= 40) {
-									var $new_selection = $li.eq(current_item).addClass('selected');
-									var filename = self.join(path, $new_selection.text());
-									if ($new_selection.length) {
-										selected[settings.name] = [filename];
-									} else {
-										selected[settings.name] = [];
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			function click(e) {
-				if (!$(e.target).closest('.' + cls).length) {
-					$('.browser-widget').removeClass('selected');
-				}
-			}
 			$(document).on('click', click)
 				.on('keydown', keydown)
 				.on('mousemove', mousemove)
@@ -413,7 +423,7 @@
 					});
 				},
 				show: function(new_path, options) {
-					var defaults = {callback: $.noop, push: true, force: false}
+					var defaults = {callback: $.noop, push: true, force: false};
 					options = $.extend({}, defaults, options);
 					if (path != new_path || options.force) {
 						self.addClass('hidden');
