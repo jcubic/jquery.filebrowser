@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.5.4
+ * jQuery File Browser - directory browser jQuery plugin version 0.6.0
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Sun, 18 Dec 2016 19:31:33 +0000
+ * Date: Tue, 20 Dec 2016 21:33:09 +0000
  */
 (function($, undefined) {
 	'use strict';
@@ -20,6 +20,7 @@
 			change: $.noop,
 			init: $.noop,
 			item_class: $.noop,
+			rename_delay: 300,
 			open: $.noop,
 			rename: $.noop,
 			copy: $.noop,
@@ -117,7 +118,9 @@
 			});
 		}
 		function keydown(e) {
-			if (self.hasClass('selected')) {
+			if (self.hasClass('selected') && !rename) {
+				var current_item;
+				var $active = $content.find('.active');
 				if (e.ctrlKey) {
 					if (e.which == 67) { // CTRL+C
 						self.copy();
@@ -126,26 +129,33 @@
 					} else if (e.which == 86) { // CTRL+V
 						self.paste(cut);
 					}
+				}
+				if (e.which == 32) { // SPACE
+					var e = jQuery.Event("click");
+					e.ctrlKey = true;
+					e.target = $active[0];
+					$active.trigger(e);
+					return false;
 				} else if (e.which == 8) { // BACKSPACE
 					self.back();
 				} else {
-					var $selected = $content.find('.selected');
-					if (e.which == 13 && $selected.length) {
-						$selected.dblclick();
+					//var $selected = $content.find('.selected');
+					if (e.which == 13 && $active.length) {
+						$active.dblclick();
 					} else {
 						if (e.which >= 37 && e.which <= 40) {
-							var current_item;
-							var $li = $content.find('li');
-							if (!$selected.length) {
-								$selected = $content.find('li:eq(0)');
-								current_item = 0;
+							if (!e.ctrlKey) {
+								$content.find('li').removeClass('selected');
+							}
+							if (!$active.length) {
+								$active = $content.find('li:eq(0)').addClass('active');
 							} else {
-								$selected.removeClass('selected');
+								var $li = $content.find('li');
 								var browse_width = $content.prop('clientWidth');
 								var length = $li.length;
 								var width = $content.find('li:eq(0)').outerWidth(true);
 								var each_row = Math.floor(browse_width/width);
-								current_item = $selected.index();
+								current_item = $active.index();
 								if (e.which == 37) { // LEFT
 									current_item--;
 								} else if (e.which == 38) { // UP
@@ -160,15 +170,7 @@
 								} else if (current_item > length-1) {
 									current_item = length-1;
 								}
-							}
-							if (e.which >= 37 && e.which <= 40) {
-								var $new_selection = $li.eq(current_item).addClass('selected');
-								var filename = self.join(path, $new_selection.text());
-								if ($new_selection.length) {
-									selected[settings.name] = [filename];
-								} else {
-									selected[settings.name] = [];
-								}
+								$li.eq(current_item).addClass('active').siblings().removeClass('active');
 							}
 						}
 					}
@@ -178,6 +180,17 @@
 		function click(e) {
 			if (!$(e.target).closest('.' + cls).length) {
 				$('.browser-widget').removeClass('selected');
+			}
+		}
+		function rename_textarea() {
+			var $textarea = $(this);
+			var old_name = $textarea.parent().find('span').text();
+			var new_name = $textarea.val();
+			if (new_name != old_name) {
+				console.log(self.join(path, old_name), self.join(path, new_name));
+				self._rename(self.join(path, old_name),
+							 self.join(path, new_name));
+				self.refresh();
 			}
 		}
 		if (this.data('browse')) {
@@ -194,16 +207,20 @@
 			var path;
 			var paths = [];
 			var current_content;
-			var $toolbar = $('<ul class="toolbar"></ul>').appendTo(self);
-			if (settings.labels) {
-				$toolbar.addClass('labels');
-			}
+			var click_time;
+			var rename = false;
+			var num_clicks = 0;
+			var $toolbar = $('<div class="toolbar"/>').appendTo(self);
 			var $adress_bar = $('<div class="adress-bar"></div>').appendTo($toolbar);
 			$('<button>Home</button>').addClass('home').appendTo($adress_bar);
+			var $tools = $('<ul></ul>').appendTo($toolbar);
+			if (settings.labels) {
+				$tools.addClass('labels');
+			}
 			var $adress = $('<input />').appendTo($adress_bar);
 			var toolbar = $.browse.strings.toolbar;
 			Object.keys(toolbar).forEach(function(name) {
-				$('<li/>').text(toolbar[name]).addClass(name).appendTo($toolbar);
+				$('<li/>').text(toolbar[name]).addClass(name).appendTo($tools);
 			});
 			var $content = $('<ul/>').wrap('<div/>').parent().addClass('content').appendTo(self);
 			var $ul = $content.find('ul');
@@ -228,9 +245,10 @@
 					self.show(path);
 				}
 			});
-			$content.on('dblclick.browse', 'li', function() {
+			$content.on('dblclick.browse', 'li', function(e) {
 				var $this = $(this);
-				var filename = self.join(path, $this.text());
+				var name = $this.find('span').text();
+				var filename = self.join(path, name);
 				if ($this.hasClass('directory')) {
 					$this.removeClass('selected');
 					self.show(filename);
@@ -238,22 +256,55 @@
 					settings.open(filename);
 				}
 			}).on('click.browse', 'li', function(e) {
-				var $this = $(this);
-				if (!e.ctrlKey) {
-					$this.siblings().removeClass('selected');
-				}
-				$this.toggleClass('selected');
-				var filename = self.join(path, $this.text());
-				if ($this.hasClass('selected')) {
-					if (!e.ctrlKey) {
-						selected[settings.name] = [];
+				console.log('click');
+				if (!was_selecting) {
+					var $target = $(e.target);
+					var $this = $(this);
+					var name = $this.find('span').text();
+					if (num_clicks++ % 2  === 0) {
+						click_time = (new Date()).getTime();
+					} else {
+						var time = ((new Date()).getTime() - click_time);
+						if ($target.is('span') && time > settings.rename_delay) {
+							console.log($this);
+							$('<textarea>'+name+'</textarea>').appendTo($this);//.focus().select();
+							$this.addClass('rename');
+							console.log($this.html());
+							rename = true;
+							return false;
+						}
 					}
-					selected[settings.name].push(filename);
-				} else if (e.ctrlKey) {
-					selected[settings.name] = selected[settings.name]
-						.filter(is(filename));
-				} else {
-					selected[settings.name] = [];
+					if (!e.ctrlKey) {
+						$this.siblings().removeClass('selected');
+					}
+					if (!$target.is('textarea')) {
+						$content.find('.active').removeClass('active');
+						$this.toggleClass('selected').addClass('active');
+						var filename = self.join(path, name);
+						if ($this.hasClass('selected')) {
+							if (!e.ctrlKey) {
+								selected[settings.name] = [];
+							}
+							selected[settings.name].push(filename);
+						} else if (e.ctrlKey) {
+							selected[settings.name] = selected[settings.name]
+								.filter(is(filename));
+						} else {
+							selected[settings.name] = [];
+						}
+					}
+				}
+			}).on('keypress', 'textarea', function(e) {
+				if (e.which == 13) { // ENTER
+					rename_textarea.call(this);
+				} else if (e.which == 27) { // ESC
+					var $this = $(this);
+					$this.parent().removeClass('rename');
+					$this.remove();
+				}
+				if ([13, 27].indexOf(e.which) != -1) {
+					rename = false;
+					return false;
 				}
 			});
 			self.on('click.browse', function(e) {
@@ -265,6 +316,11 @@
 						!$target.closest('.toolbar').length) {
 						$content.find('li').removeClass('selected');
 						selected[settings.name] = [];
+					}
+					if (!$target.is('textarea')) {
+						$content.find('li.rename').removeClass('rename')
+							.find('textarea').each(rename_textarea).remove();
+						rename = false;
 					}
 				}
 			});
@@ -284,17 +340,18 @@
 			});
 			$content.on('drop.browse', function(e) {
 				var $target = $(e.target);
-				var dest;
-				if ($target.is('.directory')) {
-					dest = self.join(path, $target.text(), drag.name);
-				} else {
-					dest = self.join(path, drag.name);
-				}
 				if (self.name() !== drag.context.name()) {
 					throw new Error("You can't drag across different filesystems");
 				}
+				var new_path;
+				if ($target.is('.directory')) {
+					new_path = self.join(path, $target.text());
+				} else {
+					new_path = path;
+				}
 				if (drag.selection) {
 					selected[settings.name].forEach(function(src) {
+						var dest = self.join(new_path, self.split(src).pop());
 						if (!same_root(src, dest)) {
 							self._rename(src, dest);
 						}
@@ -304,6 +361,7 @@
 						drag.context.refresh();
 					}
 				} else {
+					var dest = self.join(path, drag.name);
 					var src = self.join(drag.path, drag.name);
 					if (!same_root(src, dest)) {
 						self._rename(src, dest);
@@ -315,8 +373,9 @@
 				}
 				return false;
 			});
-			$ul.on('mousedown.browse', function(e) {
-				if (!$(e.target).is('li')) {
+			$content.on('mousedown.browse', function(e) {
+				var $target = $(e.target);
+				if (!$target.is('li') && !$target.is('span')) {
 					selection = true;
 					was_selecting = false;
 					self.addClass('no-select');
@@ -340,8 +399,10 @@
 					return current;
 				},
 				back: function() {
-					paths.pop();
-					self.show(paths[paths.length-1], {push: false});
+					if (paths.length > 1) {
+						paths.pop();
+						self.show(paths[paths.length-1], {push: false});
+					}
 					return self;
 				},
 				destroy: function() {
@@ -443,15 +504,14 @@
 								$ul.empty();
 								current_content.dirs.forEach(function(dir) {
 									var cls = settings.item_class(new_path, dir);
-									var $li = $('<li class="directory">' + dir + '</li>').
+									var $li = $('<li class="directory"><span>' + dir + '</span></li>').
 										appendTo($ul).attr('draggable', true);
 									if (cls) {
 										$li.addClass(cls);
 									}
-
 								});
 								current_content.files.forEach(function(file) {
-									var $li = $('<li class="file">' + file + '</li>').
+									var $li = $('<li class="file"><span>' + file + '</span></li>').
 										appendTo($ul).attr('draggable', true);
 									if (file.match('.')) {
 										$li.addClass(file.split('.').pop());

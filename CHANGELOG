@@ -1,3 +1,8 @@
+0.6.0    Fix draging selection
+         Improve keyboard navigation
+         Add selection by space
+		 Renaming with clicking on name of the file/directory
+         Fix rectangle selection when icons don't take all space of the container
 0.5.2-4  Fix selection class when click on widget
 0.5.1    fix rectangle selection when parent of the widget is scrolled down
 0.5.0    dragging selection, rectangle selection

@@ -56,7 +56,6 @@ $(function() {
 		browser.walk(src, function(part, last) {
 			var src = file[part];
 			if (last) {
-				name = part;
 				if (remove) {
 					delete file[part];
 				}
@@ -67,6 +66,8 @@ $(function() {
 		browser.walk(dest, function(part, last) {
 			if (!last) {
 				current = current[part];
+			} else {
+				name = part;
 			}
 		});
 		current[name] = file;
