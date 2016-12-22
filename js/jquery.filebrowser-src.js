@@ -139,8 +139,8 @@
 				} else if (e.which == 8) { // BACKSPACE
 					self.back();
 				} else {
-					//var $selected = $content.find('.selected');
 					if (e.which == 13 && $active.length) {
+						click_time = (new Date()).getTime();
 						$active.dblclick();
 					} else {
 						if (e.which >= 37 && e.which <= 40) {

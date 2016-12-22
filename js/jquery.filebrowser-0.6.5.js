@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.6.4
+ * jQuery File Browser - directory browser jQuery plugin version 0.6.5
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Thu, 22 Dec 2016 11:28:21 +0000
+ * Date: Thu, 22 Dec 2016 11:41:48 +0000
  */
 (function($, undefined) {
 	'use strict';
@@ -139,8 +139,8 @@
 				} else if (e.which == 8) { // BACKSPACE
 					self.back();
 				} else {
-					//var $selected = $content.find('.selected');
 					if (e.which == 13 && $active.length) {
+						click_time = (new Date()).getTime();
 						$active.dblclick();
 					} else {
 						if (e.which >= 37 && e.which <= 40) {
