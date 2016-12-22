@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.6.1
+ * jQuery File Browser - directory browser jQuery plugin version 0.6.2
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Thu, 22 Dec 2016 10:30:46 +0000
+ * Date: Thu, 22 Dec 2016 10:36:56 +0000
  */
 (function($, undefined) {
 	'use strict';
@@ -93,7 +93,7 @@
 			}
 		}
 		function mouseup(e) {
-			selection = was_selecting = false;
+			selection = false;
 			$selection.hide();
 			self.removeClass('no-select');
 		}
@@ -261,7 +261,7 @@
 				}
 			}).on('click.browse', 'li', function(e) {
 				console.log(was_selecting);
-				if (!was_selecting) {
+				if (!selection) {
 					var $target = $(e.target);
 					var $this = $(this);
 					var name = $this.find('span').text();

@@ -93,7 +93,7 @@
 			}
 		}
 		function mouseup(e) {
-			selection = was_selecting = false;
+			selection = false;
 			$selection.hide();
 			self.removeClass('no-select');
 		}
@@ -261,7 +261,7 @@
 				}
 			}).on('click.browse', 'li', function(e) {
 				console.log(was_selecting);
-				if (!was_selecting) {
+				if (!selection) {
 					var $target = $(e.target);
 					var $this = $(this);
 					var name = $this.find('span').text();
