@@ -1,3 +1,4 @@
+0.6.4    Smal css fixes and add copyrigth notice to minified css files
 0.6.3    Fix renaming and refresh all widgets if they have same name and path
 0.6.2    Fix rectangle selection
 0.6.1    Fix renaming using slow double click

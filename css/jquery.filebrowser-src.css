@@ -107,6 +107,7 @@
 	border: none;
 	position: relative;
 	top: 2px;
+	outline: none;
 }
 .browser-widget .content li.rename span {
 	display: none;

@@ -1,11 +1,11 @@
 /*!
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.6.3
+ * jQuery File Browser - directory browser jQuery plugin version 0.6.4
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Thu, 22 Dec 2016 11:22:14 +0000
+ * Date: Thu, 22 Dec 2016 11:28:22 +0000
  */
 .browser-widget.hidden, .browser-widget .hidden {
 	visibility: hidden;
@@ -107,6 +107,7 @@
 	border: none;
 	position: relative;
 	top: 2px;
+	outline: none;
 }
 .browser-widget .content li.rename span {
 	display: none;

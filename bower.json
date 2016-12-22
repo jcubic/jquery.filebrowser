@@ -1,6 +1,6 @@
 {
     "name": "jquery.filebrowser",
-    "version": "0.6.3",
+    "version": "0.6.4",
     "main": [
         "js/jquery.filebrowser.js",
         "css/jquery.filebrowser.css"
