@@ -103,6 +103,10 @@
 .browser-widget .content li textarea {
 	width: 100%;
 	resize: vertical;
+	box-sizing: border-box;
+	border: none;
+	position: relative;
+	top: 2px;
 }
 .browser-widget .content li.rename span {
 	display: none;

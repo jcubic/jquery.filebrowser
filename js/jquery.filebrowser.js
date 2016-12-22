@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.6.0
+ * jQuery File Browser - directory browser jQuery plugin version 0.6.1
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Tue, 20 Dec 2016 21:33:09 +0000
+ * Date: Thu, 22 Dec 2016 10:30:46 +0000
  */
 (function($, undefined) {
 	'use strict';
@@ -21,6 +21,7 @@
 			init: $.noop,
 			item_class: $.noop,
 			rename_delay: 300,
+			dbclick_delay: 2000,
 			open: $.noop,
 			rename: $.noop,
 			copy: $.noop,
@@ -92,7 +93,7 @@
 			}
 		}
 		function mouseup(e) {
-			selection = false;
+			selection = was_selecting = false;
 			$selection.hide();
 			self.removeClass('no-select');
 		}
@@ -249,29 +250,35 @@
 				var $this = $(this);
 				var name = $this.find('span').text();
 				var filename = self.join(path, name);
-				if ($this.hasClass('directory')) {
-					$this.removeClass('selected');
-					self.show(filename);
-				} else if ($this.hasClass('file')) {
-					settings.open(filename);
+				var time = ((new Date()).getTime() - click_time);
+				if (time < settings.rename_delay && time < settings.dbclick_delay) {
+					if ($this.hasClass('directory')) {
+						$this.removeClass('selected');
+						self.show(filename);
+					} else if ($this.hasClass('file')) {
+						settings.open(filename);
+					}
 				}
 			}).on('click.browse', 'li', function(e) {
-				console.log('click');
+				console.log(was_selecting);
 				if (!was_selecting) {
 					var $target = $(e.target);
 					var $this = $(this);
 					var name = $this.find('span').text();
-					if (num_clicks++ % 2  === 0) {
-						click_time = (new Date()).getTime();
-					} else {
-						var time = ((new Date()).getTime() - click_time);
-						if ($target.is('span') && time > settings.rename_delay) {
-							console.log($this);
-							$('<textarea>'+name+'</textarea>').appendTo($this);//.focus().select();
-							$this.addClass('rename');
-							console.log($this.html());
-							rename = true;
-							return false;
+					var filename = self.join(path, name);
+					if ($target.is('span')) {
+						console.log('span');
+						if (num_clicks++ % 2  === 0) {
+							click_time = (new Date()).getTime();
+						} else {
+							console.log('db click');
+							var time = ((new Date()).getTime() - click_time);
+							if (time > settings.rename_delay && time < settings.dbclick_delay) {
+								$('<textarea>'+name+'</textarea>').appendTo($this).focus().select();
+								$this.addClass('rename');
+								rename = true;
+								return false;
+							}
 						}
 					}
 					if (!e.ctrlKey) {
@@ -280,7 +287,6 @@
 					if (!$target.is('textarea')) {
 						$content.find('.active').removeClass('active');
 						$this.toggleClass('selected').addClass('active');
-						var filename = self.join(path, name);
 						if ($this.hasClass('selected')) {
 							if (!e.ctrlKey) {
 								selected[settings.name] = [];
@@ -310,18 +316,18 @@
 			self.on('click.browse', function(e) {
 				$('.' + cls).removeClass('selected');
 				self.addClass('selected');
+				var $target = $(e.target);
 				if (!was_selecting) {
-					var $target = $(e.target);
 					if (!e.ctrlKey && !$target.is('.content li') &&
 						!$target.closest('.toolbar').length) {
 						$content.find('li').removeClass('selected');
 						selected[settings.name] = [];
 					}
-					if (!$target.is('textarea')) {
-						$content.find('li.rename').removeClass('rename')
-							.find('textarea').each(rename_textarea).remove();
-						rename = false;
-					}
+				}
+				if (!$target.is('textarea')) {
+					$content.find('li.rename').removeClass('rename')
+						.find('textarea').each(rename_textarea).remove();
+					rename = false;
 				}
 			});
 			self.on('dragover.browse', '.content', function() {
@@ -372,8 +378,7 @@
 					}
 				}
 				return false;
-			});
-			$content.on('mousedown.browse', function(e) {
+			}).on('mousedown.browse', function(e) {
 				var $target = $(e.target);
 				if (!$target.is('li') && !$target.is('span')) {
 					selection = true;

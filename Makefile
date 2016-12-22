@@ -1,11 +1,10 @@
-VERSION=0.6.0
+VERSION=0.6.1
 COMPRESS=uglifyjs
 SED=sed
 CP=cp
 RM=rm
 CAT=cat
 DATE=`date -uR`
-
 
 ALL: Makefile .$(VERSION) js/jquery.filebrowser-$(VERSION).js js/jquery.filebrowser.js js/jquery.filebrowser-$(VERSION).min.js js/jquery.filebrowser.min.js css/jquery.filebrowser-$(VERSION).css css/jquery.filebrowser-$(VERSION).min.css css/jquery.filebrowser.min.css css/jquery.filebrowser.css README.md bower.json package.json
 
