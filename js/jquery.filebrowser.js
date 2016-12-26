@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.6.5
+ * jQuery File Browser - directory browser jQuery plugin version 0.6.6
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Mon, 26 Dec 2016 18:01:34 +0000
+ * Date: Mon, 26 Dec 2016 18:31:31 +0000
  */
 (function($, undefined) {
     'use strict';
@@ -283,6 +283,8 @@
                                 return false;
                             }
                         }
+                    } else {
+                        click_time = (new Date()).getTime();
                     }
                     if (!e.ctrlKey) {
                         $this.siblings().removeClass('selected');
@@ -333,24 +335,25 @@
                     rename = false;
                 }
             });
-            self.on('dragover.browse', '.content', function() {
+            self.on('dragover.browse', '.content', function(e) {
                 return false;
-            }).on('dragstart', '.content li', function() {
+            }).on('dragstart', '.content li', function(e) {
+                e.originalEvent.dataTransfer.setData('text', 'anything');
                 var $this = $(this);
                 var name = $this.text();
                 drag = {
                     name: name,
+                    node: $this,
                     path: path,
                     context: self
                 };
-                if ($this.hasClass('selected')) {
-                    drag.selection = true;
-                }
+                drag.selection = $this.hasClass('selected');
             });
             $content.on('drop.browse', function(e) {
                 var $target = $(e.target);
                 if (self.name() !== drag.context.name()) {
-                    throw new Error("You can't drag across different filesystems");
+                    var msg = "You can't drag across different filesystems";
+                    throw new Error(msg);
                 }
                 var new_path;
                 if ($target.is('.directory')) {
@@ -367,8 +370,8 @@
                     });
                     refresh_same();
                 } else {
-                    var dest = self.join(path, drag.name);
                     var src = self.join(drag.path, drag.name);
+                    var dest = self.join(new_path, drag.name);
                     if (!same_root(src, dest)) {
                         self._rename(src, dest);
                         refresh_same();
