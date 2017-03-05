@@ -11,7 +11,7 @@ to install you can grab the files from the repo or install from
 ## bower
 
 ```
-browser install jquery.filebrowser --save
+bower install jquery.filebrowser --save
 ```
 
 ## npm
