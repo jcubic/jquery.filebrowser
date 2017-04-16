@@ -52,7 +52,7 @@ $(function() {
 });
 ```
 
-more examples and usage in [examples directory](https://github.com/jcubic/jquery.filebrowser/tree/master/examples), must up to date is [two_instances.html](https://github.com/jcubic/jquery.filebrowser/blob/master/examples/two_instances.html)
+more examples and usage in [examples directory](https://github.com/jcubic/jquery.filebrowser/tree/master/examples), most up to date is [two_instances.html](https://github.com/jcubic/jquery.filebrowser/blob/master/examples/two_instances.html)
 
 # License
 
