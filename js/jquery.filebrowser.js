@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.7.0
+ * jQuery File Browser - directory browser jQuery plugin version 0.7.1
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Sun, 16 Apr 2017 18:29:12 +0000
+ * Date: Sun, 16 Apr 2017 18:44:19 +0000
  */
 (function($, undefined) {
     'use strict';
@@ -646,7 +646,14 @@
                         $toolbar.find('.up').toggleClass('disabled', new_path == settings.root);
                         $toolbar.find('.back').toggleClass('disabled', paths.length == 1);
                         path = new_path;
-                        settings.dir(path, function(content) {
+                        // don't break old API. promise based and callback should both work
+                        settings.dir(path, process).then(process);
+                        var run = false;
+                        function process(content) {
+                            if (run) {
+                                return;
+                            }
+                            run = true;
                             if (!content) {
                                 settings.error('Invalid directory');
                                 self.removeClass('hidden');
@@ -677,7 +684,7 @@
                                 settings.change.call(self);
                                 options.callback();
                             }
-                        });
+                        }
                     }
                     return self;
                 },
