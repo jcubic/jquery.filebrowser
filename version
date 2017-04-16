@@ -1,7 +1,9 @@
 #!/bin/bash
 
 VERSION=`grep VERSION= Makefile | sed -e 's/VERSION=\(.*\)/\1/'`
-if [ $1 != $VERSION ]; then
+if [ -z "$1" ]; then
+    echo $VERSION;
+elif [ "$1" != "$VERSION" ]; then
     sed -e "s/{{VERSION}}/"$1"/" Makefile.in > Makefile
     git mv css/jquery.filebrowser-${VERSION}.css css/jquery.filebrowser-${1}.css
     git mv css/jquery.filebrowser-${VERSION}.min.css css/jquery.filebrowser-${1}.min.css

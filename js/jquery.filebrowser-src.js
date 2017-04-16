@@ -9,6 +9,113 @@
  */
 (function($, undefined) {
     'use strict';
+    function Uploader(browser, upload, error) {
+        this.browser = browser;
+        this.upload = upload;
+        this.error = error;
+    }
+
+    Uploader.prototype.process = function process(event, path) {
+        var defered = $.Deferred();
+        var self = this;
+        if (event.originalEvent) {
+            event = event.originalEvent;
+        }
+        var items;
+        if (event.dataTransfer.items) {
+            items = [].slice.call(event.dataTransfer.items);
+        }
+        var files = (event.dataTransfer.files || event.target.files);
+        if (files) {
+            files = [].slice.call(files);
+        }
+        if (items && items.length) {
+            if (items[0].webkitGetAsEntry) {
+                var entries = [];
+                items.forEach(function(item) {
+                    var entry = item.webkitGetAsEntry();
+                    if (entry) {
+                        entries.push(entry);
+                    }
+                });
+                (function upload() {
+                    var entry = entries.shift();
+                    if (entry) {
+                        self.upload_tree(entry, path).then(upload);
+                    } else {
+                        defered.resolve();
+                    }
+                })();
+            }
+        } else if (files && files.length) {
+            (function upload() {
+                var file = files.shift();
+                if (file) {
+                    self.upload(file, path).then(upload);
+                } else {
+                    defered.resolve();
+                }
+            })();
+        } else if (event.dataTransfer.getFilesAndDirectories) {
+            event.dataTransfer.getFilesAndDirectories().then(function(items) {
+                (function upload() {
+                    var item = items.shift();
+                    if (item) {
+                        self.upload_tree(item, path).then(upload);
+                    }  else {
+                        defered.resolve();
+                    }
+                })();
+            });
+        }
+        return defered.promise();
+    };
+
+    Uploader.prototype.upload_tree = function upload_tree(tree, path) {
+        var defered = $.Deferred();
+        var self = this;
+        function process(entries, callback) {
+            entries = entries.slice();
+            (function recur() {
+                var entry = entries.shift();
+                if (entry) {
+                    callback(entry).then(recur).fail(function() {
+                        defered.reject();
+                    });
+                } else {
+                    defered.resolve();
+                }
+            })();
+        }
+        function upload_files(entries) {
+            process(entries, function(entry) {
+                return self.upload_tree(entry, self.browser.join(path,tree.name));
+            });
+        }
+        function upload_file(file) {
+            self.upload(file, path).then(function() {
+                defered.resolve();
+            }).fail(function() {
+                defered.reject();
+            });
+        }
+        if (typeof Directory != 'undefined' && tree instanceof Directory) { // firefox
+            tree.getFilesAndDirectories().then(function(entries) {
+                upload_files(entries);
+            });
+        } else if (typeof File != 'undefined' && tree instanceof File) { // firefox
+            upload_file(tree);
+        } else if (tree.isFile) { // chrome
+            tree.file(upload_file);
+        } else if (tree.isDirectory) { // chrome
+            var dirReader = tree.createReader();
+            dirReader.readEntries(function(entries) {
+                upload_files(entries);
+            });
+        }
+        return defered.promise();
+    };
+
     $.browse = {
         defaults: {
             dir: function() {
@@ -25,6 +132,7 @@
             open: $.noop,
             rename: $.noop,
             copy: $.noop,
+            upload: $.noop,
             name: 'default',
             error: $.noop,
             refresh_timer: 100
@@ -170,7 +278,8 @@
                                 } else if (current_item > length-1) {
                                     current_item = length-1;
                                 }
-                                $li.eq(current_item).addClass('active').siblings().removeClass('active');
+                                $li.eq(current_item).addClass('active')
+                                    .siblings().removeClass('active');
                             }
                         }
                     }
@@ -211,6 +320,7 @@
             selected[settings.name] = selected[settings.name] || [];
             var self = this;
             self.addClass(cls + ' hidden');
+            var uploader = new Uploader(self, settings.upload, settings.error);
             var path;
             var paths = [];
             var current_content;
@@ -229,7 +339,8 @@
             Object.keys(toolbar).forEach(function(name) {
                 $('<li/>').text(toolbar[name]).addClass(name).appendTo($tools);
             });
-            var $content = $('<ul/>').wrap('<div/>').parent().addClass('content').appendTo(self);
+            var $content = $('<ul/>').wrap('<div/>').parent().addClass('content')
+                .appendTo(self);
             var $ul = $content.find('ul');
             var x1 = 0, y1 = 0, x2 = 0, y2 = 0;
             var $selection = $('<div/>').addClass('selection').hide().appendTo($content);
@@ -276,8 +387,10 @@
                             click_time = (new Date()).getTime();
                         } else {
                             var time = ((new Date()).getTime() - click_time);
-                            if (time > settings.rename_delay && time < settings.dbclick_delay) {
-                                $('<textarea>'+name+'</textarea>').appendTo($this).focus().select();
+                            if (time > settings.rename_delay &&
+                                time < settings.dbclick_delay) {
+                                $('<textarea>'+name+'</textarea>').appendTo($this)
+                                    .focus().select();
                                 $this.addClass('rename');
                                 rename = true;
                                 return false;
@@ -335,7 +448,11 @@
                     rename = false;
                 }
             });
-            self.on('dragover.browse', '.content', function(e) {
+            self.on('dragover.browse', '.content', function(event) {
+                if (event.originalEvent) {
+                    event = event.originalEvent;
+                }
+                event.dataTransfer.dropEffect = "move";
                 return false;
             }).on('dragstart', '.content li', function(e) {
                 e.originalEvent.dataTransfer.setData('text', 'anything');
@@ -349,33 +466,54 @@
                 };
                 drag.selection = $this.hasClass('selected');
             });
+            function is_file_drop(event) {
+                if (event.originalEvent) {
+                    event = event.originalEvent;
+                }
+                if (event.dataTransfer.items && event.dataTransfer.items.length) {
+                    return !![].filter.call(event.dataTransfer.items, function(item) {
+                        return item.kind == 'file';
+                    }).length;
+                } else {
+                    return event.dataTransfer.files && event.dataTransfer.files.length;
+                }
+            }
             $content.on('drop.browse', function(e) {
                 var $target = $(e.target);
-                if (self.name() !== drag.context.name()) {
-                    var msg = "You can't drag across different filesystems";
-                    throw new Error(msg);
-                }
                 var new_path;
                 if ($target.is('.directory')) {
                     new_path = self.join(path, $target.text());
                 } else {
                     new_path = path;
                 }
-                if (drag.selection) {
-                    selected[settings.name].forEach(function(src) {
-                        var dest = self.join(new_path, self.split(src).pop());
-                        if (!same_root(src, dest)) {
-                            self._rename(src, dest);
+                if (is_file_drop(e)) {
+                    uploader.process(e, new_path).then(function() {
+                        if (!$target.is('.directory')) {
+                            refresh_same();
                         }
                     });
-                    refresh_same();
                 } else {
-                    var src = self.join(drag.path, drag.name);
-                    var dest = self.join(new_path, drag.name);
-                    if (!same_root(src, dest)) {
-                        self._rename(src, dest);
-                        refresh_same();
+                    if (self.name() !== drag.context.name()) {
+                        var msg = "You can't drag across different filesystems";
+                        throw new Error(msg);
                     }
+                    var promise;
+                    if (drag.selection) {
+                        promise = $.when.appy($, selected[settings.name].map(function(src) {
+                            var dest = self.join(new_path, self.split(src).pop());
+                            if (!same_root(src, dest)) {
+                                return self._rename(src, dest);
+                            }
+                        }));
+                    } else {
+                        var src = self.join(drag.path, drag.name);
+                        var dest = self.join(new_path, drag.name);
+                        promise = self._rename(src, dest);
+                    }
+                    promise.then(function() {
+                        drag.context.refresh();
+                        refresh_same();
+                    });
                 }
                 return false;
             }).on('mousedown.browse', function(e) {
@@ -418,11 +556,17 @@
                 },
                 _rename: function(src, dest) {
                     if (!same_root(src, dest)) {
-                        settings.rename(src, dest);
+                        return settings.rename(src, dest);
+                    } else {
+                        return $.when();
                     }
                 },
                 _copy: function(src, dest) {
-                    settings.copy(src, dest);
+                    if (!same_root(src, dest)) {
+                        return settings.copy(src, dest);
+                    } else {
+                        return $.when();
+                    }
                 },
                 copy: function() {
                     copy = {
@@ -438,24 +582,30 @@
                 },
                 paste: function(cut) {
                     function process(widget, fn) {
-                        copy.contents.forEach(function(src) {
+                        return $.when.apply($, copy.contents.map(function(src) {
                             var name = widget.split(src).pop();
                             var dest = widget.join(path, name);
                             if (!same_root(src, dest)) {
-                                widget[fn](src, dest);
+                                return widget[fn](src, dest);
+                            } else {
+                                return $.when();
                             }
-                        });
+                        }));
                     }
                     if (copy && copy.contents && copy.contents.length) {
                         if (self.name() !== copy.source.name()) {
                             throw new Error("You can't paste across different filesystems");
                         } else {
+                            var promise;
                             if (cut) {
-                                process(self, '_rename');
+                                promise = process(self, '_rename');
                             } else {
-                                process(self, '_copy');
+                                promise = process(self, '_copy');
                             }
-                            refresh_same();
+                            promise.then(function() {
+                                copy.source.refresh();
+                                refresh_same();
+                            });
                         }
                     }
                 },
@@ -496,7 +646,14 @@
                         $toolbar.find('.up').toggleClass('disabled', new_path == settings.root);
                         $toolbar.find('.back').toggleClass('disabled', paths.length == 1);
                         path = new_path;
-                        settings.dir(path, function(content) {
+                        // don't break old API. promise based and callback should both work
+                        settings.dir(path, process).then(process);
+                        var run = false;
+                        function process(content) {
+                            if (run) {
+                                return;
+                            }
+                            run = true;
                             if (!content) {
                                 settings.error('Invalid directory');
                                 self.removeClass('hidden');
@@ -527,7 +684,7 @@
                                 settings.change.call(self);
                                 options.callback();
                             }
-                        });
+                        }
                     }
                     return self;
                 },
