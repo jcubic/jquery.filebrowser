@@ -356,11 +356,12 @@
                 if (path != settings.root) {
                     self.show(settings.root);
                 }
-            }).on('keypress.browse', 'input', function(e) {
+            }).on('keydown.browse', 'input', function(e) {
                 if (e.which == 13) {
                     var $this = $(this);
                     var path = $this.val();
                     self.show(path);
+                    return false;
                 }
             });
             $content.on('dblclick.browse', 'li', function(e) {

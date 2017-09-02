@@ -5,7 +5,7 @@
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Sat, 02 Sep 2017 10:43:44 +0000
+ * Date: Sat, 02 Sep 2017 16:03:31 +0000
  */
 (function($, undefined) {
     'use strict';
@@ -356,11 +356,12 @@
                 if (path != settings.root) {
                     self.show(settings.root);
                 }
-            }).on('keypress.browse', 'input', function(e) {
+            }).on('keydown.browse', 'input', function(e) {
                 if (e.which == 13) {
                     var $this = $(this);
                     var path = $this.val();
                     self.show(path);
+                    return false;
                 }
             });
             $content.on('dblclick.browse', 'li', function(e) {
