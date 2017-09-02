@@ -1,3 +1,6 @@
+0.7.2    fix error while reading `then` from dir if don't return a promise
+0.7.1    some missing changes
+0.7.0    drag & drop + promise based processing
 0.6.6    Fix opening opening file/directories by double click and drag and drop in Firefox
 0.6.5    Fix enter on active icon
 0.6.4    Smal css fixes and add copyrigth notice to minified css files
@@ -7,7 +10,7 @@
 0.6.0    Fix draging selection
          Improve keyboard navigation
          Add selection by space
-		 Renaming with clicking on name of the file/directory
+         Renaming with clicking on name of the file/directory
          Fix rectangle selection when icons don't take all space of the container
 0.5.2-4  Fix selection class when click on widget
 0.5.1    fix rectangle selection when parent of the widget is scrolled down

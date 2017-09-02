@@ -10,100 +10,100 @@
   <link href="../css/jquery.filebrowser-src.css" rel="stylesheet"/>
   <style>
 body {
-	font-size: 10px;
+    font-size: 10px;
 }
 .ui-dialog .ui-dialog-content {
-	padding: 0;
+    padding: 0;
 }
   </style>
   <script>
 $(function() {
-	var env = {
-		'bin': {
-			'bash': 'bash content',
-			'python': 'python content',
-			'perl': 'perl content',
-			'find': 'find content',
-			'share': {
-				'foo': 'hello foo',
-				'bar': 'hello bar',
-				'lib': {
-					'asd': 'foo bar'
-				}
-			}
-		},
-		/*
-		'C:': {
-			'foo': 'hello foo'
-		},
-		//*/
-		'foo': {
-			'page.html': '<html></html>',
-			'style.css': 'body { overflow: scroll; }'
-		},
-		'bar.svg': 'Foo',
-		'baz.txt': 'Hello',
-		'1.json': '',
-		'2.js': '',
-		'3.css': '',
-		'4.doc': '',
-		'5.html': '',
-		'6.pdf': '',
-		'7.jpg': '',
-		'8.gif': '',
-		'9.php': '',
-		'10.xls': '',
-		'11.ppt': ''
-	}
-	var settings = {
-		separator: '/',
-		root: '/'
-	};
+    var env = {
+        'bin': {
+            'bash': 'bash content',
+            'python': 'python content',
+            'perl': 'perl content',
+            'find': 'find content',
+            'share': {
+                'foo': 'hello foo',
+                'bar': 'hello bar',
+                'lib': {
+                    'asd': 'foo bar'
+                }
+            }
+        },
+        /*
+        'C:': {
+            'foo': 'hello foo'
+        },
+        //*/
+        'foo': {
+            'page.html': '<html></html>',
+            'style.css': 'body { overflow: scroll; }'
+        },
+        'bar.svg': 'Foo',
+        'baz.txt': 'Hello',
+        '1.json': '',
+        '2.js': '',
+        '3.css': '',
+        '4.doc': '',
+        '5.html': '',
+        '6.pdf': '',
+        '7.jpg': '',
+        '8.gif': '',
+        '9.php': '',
+        '10.xls': '',
+        '11.ppt': ''
+    }
+    var settings = {
+        separator: '/',
+        root: '/'
+    };
 
-	function get(path) {
-		var current = env;
-		browse.walk(path, function(file) {
-			current = current[file];
-		});
-		return current;
-	}
-	var browse = $('#browser').dialog().browse({
-		root: '/',
-		separator: '/',
-		dir: function(path, callback) {
-			dir = get(path);
-			if ($.isPlainObject(dir)) {
-				var result = {files:[], dirs: []};
-				Object.keys(dir).forEach(function(key) {
-					if (typeof dir[key] == 'string') {
-						result.files.push(key);
-					} else if ($.isPlainObject(dir[key])) {
-						result.dirs.push(key);
-					}
-				});
-				callback(result);
-			}
-		},
-		item_class: function(path, name) {
-			return name.match(/[A-Z]:/) ? 'drive' : '';
-		},
-		open: function(filename) {
-			var file = get(filename);
-			if (typeof file == 'string') {
-				alert(file);
-			} else {
-				throw new Error('Invalid filename');
-			}
-		},
-		on_change: function() {
-			$('#path').val(this.path());
-		}
-	});
+    function get(path) {
+        var current = env;
+        browse.walk(path, function(file) {
+            current = current[file];
+        });
+        return current;
+    }
+    var browse = $('#browser').dialog().browse({
+        root: '/',
+        separator: '/',
+        dir: function(path, callback) {
+            dir = get(path);
+            if ($.isPlainObject(dir)) {
+                var result = {files:[], dirs: []};
+                Object.keys(dir).forEach(function(key) {
+                    if (typeof dir[key] == 'string') {
+                        result.files.push(key);
+                    } else if ($.isPlainObject(dir[key])) {
+                        result.dirs.push(key);
+                    }
+                });
+                callback(result);
+            }
+        },
+        item_class: function(path, name) {
+            return name.match(/[A-Z]:/) ? 'drive' : '';
+        },
+        open: function(filename) {
+            var file = get(filename);
+            if (typeof file == 'string') {
+                alert(file);
+            } else {
+                throw new Error('Invalid filename');
+            }
+        },
+        on_change: function() {
+            $('#path').val(this.path());
+        }
+    });
 });
   </script>
 </head>
-	<input id="path"/>
-	<div id="browser"></div>
+    <input id="path"/>
+    <div id="browser"></div>
 <body>
 </body>
 </html>

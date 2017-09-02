@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.7.1
+ * jQuery File Browser - directory browser jQuery plugin version 0.7.2
  *
  * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
  * Released under the MIT license
  *
- * Date: Sun, 16 Apr 2017 18:44:19 +0000
+ * Date: Sat, 02 Sep 2017 10:43:44 +0000
  */
 (function($, undefined) {
     'use strict';
@@ -647,7 +647,10 @@
                         $toolbar.find('.back').toggleClass('disabled', paths.length == 1);
                         path = new_path;
                         // don't break old API. promise based and callback should both work
-                        settings.dir(path, process).then(process);
+                        var result = settings.dir(path, process);
+                        if (result && result.then) {
+                            result.then(process);
+                        }
                         var run = false;
                         function process(content) {
                             if (run) {

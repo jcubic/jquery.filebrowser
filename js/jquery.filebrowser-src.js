@@ -647,7 +647,10 @@
                         $toolbar.find('.back').toggleClass('disabled', paths.length == 1);
                         path = new_path;
                         // don't break old API. promise based and callback should both work
-                        settings.dir(path, process).then(process);
+                        var result = settings.dir(path, process);
+                        if (result && result.then) {
+                            result.then(process);
+                        }
                         var run = false;
                         function process(content) {
                             if (run) {
