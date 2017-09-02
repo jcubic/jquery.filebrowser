@@ -1,5 +1,5 @@
+0.7.3    prevent opening file on enter when focus in adress bar
 0.7.2    fix error while reading `then` from dir if don't return a promise
-         prevent opening file on enter when focus in adress bar
 0.7.1    some missing changes
 0.7.0    drag & drop + promise based processing
 0.6.6    Fix opening opening file/directories by double click and drag and drop in Firefox
