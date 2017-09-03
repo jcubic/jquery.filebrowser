@@ -6,6 +6,8 @@
   <script src="jquery-3.1.1.min.js"></script>
   <script src="../js/jquery.filebrowser-src.js"></script>
   <link href="../css/jquery.filebrowser-src.css" rel="stylesheet"/>
+  <script src="http://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+  <link href="http://code.jquery.com/ui/1.12.1/themes/dark-hive/jquery-ui.css" rel="stylesheet"/>
   <style>
 body {
     margin: 0;
@@ -97,6 +99,7 @@ body {
            },
            refresh_timer: 0,
            copy: process,
+           contextmenu: true,
            dir: function(path) {
                dir = get(path);
                var result;
@@ -120,6 +123,20 @@ body {
                if (typeof file == 'string') {
                    alert(file);
                }
+           },
+           create: function(path, type) {
+               var m = path.match(/(.*)\/(.*)/);
+               var parent = get(m[1]);
+               if (type == 'directory') {
+                   parent[m[2]] = {};
+               } else {
+                   parent[m[2]] = 'Content of new File';
+               }
+           },
+           remove: function(path) {
+               var m = path.match(/(.*)\/(.*)/);
+               var parent = get(m[1]);
+               delete parent[m[2]];
            }
        });
        var browser = $('.browser').eq(0).browse();

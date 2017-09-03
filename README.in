@@ -36,16 +36,19 @@ $(function() {
     var browse = $('#browser').browse({
         root: '/',
         separator: '/',
-        dir: function(path, callback) {
-            if (path == '/') {
-                callback({dirs: ['foo', 'bar'], files: []});
-            } else if (path == '/foo/') {
-                callback({dirs: [], files: ['baz', 'quux']});
-            } else if (path == '/bar/') {
-                callback({dirs: [], files: ['lorem', 'ipsum']});
-            } else {
-                callback(null); // for cases when you type wrong path in address bar
-            }
+        contextmenu: true,
+        dir: function(path) {
+            return new Promise(function(resolve, reject) {
+                 if (path == '/') {
+                     resolve({dirs: ['foo', 'bar'], files: []});
+                 } else if (path == '/foo/') {
+                     resolve({dirs: [], files: ['baz', 'quux']});
+                 } else if (path == '/bar/') {
+                     resolve({dirs: [], files: ['lorem', 'ipsum']});
+                 } else {
+                     reject(); // for cases when you type wrong path in address bar
+                 }
+             });
         },
         open: function(filename) {
             console.log('opening ' + filename);
@@ -54,10 +57,17 @@ $(function() {
 });
 ```
 
-more examples and usage in [examples directory](https://github.com/jcubic/jquery.filebrowser/tree/master/examples), most up to date is [two_instances.html](https://github.com/jcubic/jquery.filebrowser/blob/master/examples/two_instances.html)
+All user functions that modify the Directory like create, remove, copy, rename can return a promise,
+and the plugin will refresh the view (call dir function) when it's resolved.
+
+more examples and usage in [examples directory](https://github.com/jcubic/jquery.filebrowser/tree/master/examples).
+
+# Requirement
+
+If you want context menu (enabled using contextmenu option) you'll need jQuery UI and of course you need jQuery itself.
 
 # License
 
 Licensed under [MIT](http://opensource.org/licenses/MIT) license
 
-Copyright (c) 2016 [Jakub Jankiewicz](http://jcubic.pl)
+Copyright (c) 2016-2017 [Jakub Jankiewicz](http://jcubic.pl/me)

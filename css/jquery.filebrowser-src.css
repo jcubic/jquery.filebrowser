@@ -2,7 +2,7 @@
  *
  * jQuery File Browser - directory browser jQuery plugin version {{VER}}
  *
- * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
+ * Copyright (c) 2016-2017 Jakub Jankiewicz <http://jcubic.pl/me>
  * Released under the MIT license
  *
  * Date: {{DATE}}
@@ -10,17 +10,21 @@
 .browser-widget.hidden, .browser-widget .hidden {
     visibility: hidden;
 }
-.browser-widget ul {
+.browser-widget ul:not(.ui-menu) {
     list-style: none;
     margin: 0;
     padding: 0;
+}
+.browser-widget ul.ui-menu {
+    float: left;
+    position: absolute;
 }
 .browser-widget li[draggable] {
   /* Required to make elements draggable in old WebKit */
   -khtml-user-drag: element;
   -webkit-user-drag: element;
 }
-.browser-widget li {
+.browser-widget ul:not(.ui-menu) > li {
     display: inline-block;
     position: relative;
     box-sizing: border-box;
@@ -29,9 +33,9 @@
     margin: 5px;
     word-break: break-word;
     vertical-align: top;
-    width: 40px;
+    width: 60px;
 }
-.browser-widget li, .browser-widget.no-select * {
+.browser-widget ul:not(.ui-menu) > li, .browser-widget.no-select * {
     -khtml-user-select: none;
     -webkit-user-select: none;  /* Chrome all / Safari all */
     -moz-user-select: none;     /* Firefox all */
@@ -54,7 +58,7 @@
 .browser-widget .toolbar ul:not(.labels) li {
     text-indent: -99999px;
 }
-.browser-widget li::before, .browser-widget .adress-bar button {
+.browser-widget ul:not(.ui-menu) > li::before, .browser-widget .adress-bar button {
     background: transparent url(icons.svg) no-repeat;
 }
 .browser-widget .adress-bar button {
@@ -84,7 +88,7 @@
     border: 1px dotted #000;
     position: absolute;
 }
-.browser-widget .content li.selected::after {
+.browser-widget .content ul:not(.ui-menu) li.selected::after {
     content: "";
     position: absolute;
     top: 0;
@@ -94,14 +98,14 @@
     z-index: -1;
     background: #0b93d5;
 }
-.browser-widget .content li {
+.browser-widget .content ul:not(.ui-menu) li {
     border: 1px solid transparent;
 }
-.browser-widget .content li span {
+.browser-widget .content ul:not(.ui-menu) li span {
     cursor: text;
     overflow-wrap: break-word;
 }
-.browser-widget .content li textarea {
+.browser-widget .content ul:not(.ui-menu) li textarea {
     width: 100%;
     resize: vertical;
     box-sizing: border-box;
@@ -109,14 +113,18 @@
     position: relative;
     top: 2px;
     outline: none;
+    text-align: center;
+    overflow: hidden;
+    min-height: 55px;
 }
-.browser-widget .content li.rename span {
+.browser-widget .content ul:not(.ui-menu) li.rename span,
+.browser-widget .content ul:not(.ui-menu) li.new span {
     display: none;
 }
-.browser-widget .content li.active {
+.browser-widget .content ul:not(.ui-menu) li.active {
     border: 1px dotted gray;
 }
-.browser-widget li::before {
+.browser-widget ul:not(.ui-menu) li::before {
     display: inline-block;
     width: 32px;
     height: 32px;
@@ -136,58 +144,65 @@
 .browser-widget .toolbar ul:not(.labels) li {
     padding-top: 20px;
 }
-.browser-widget li.back::before {
+.browser-widget ul.labels li.back::before {
     background-position: 0 -160px
 }
-.browser-widget li.up::before {
+.browser-widget ul.labels li.up::before {
     background-position: -32px -160px
 }
-.browser-widget li.refresh::before {
+.browser-widget ul.labels li.refresh::before {
     background-position: -96px -160px
 }
 .browser-widget .drive::before {
     background-position: 0 -128px;
 }
-.browser-widget .file::before {
+.browser-widget .content ul:not(.ui-menu) .file::before {
     background-position: 0 -96px;
 }
-.browser-widget .svg::before {
+.browser-widget .content ul:not(.ui-menu) .svg::before {
     background-position: -64px 0;
 }
-.browser-widget .txt::before {
+.browser-widget .content ul:not(.ui-menu) .txt::before {
     background-position: -32px -64px;
 }
-.browser-widget .pdf::before {
+.browser-widget .content ul:not(.ui-menu) .pdf::before {
     background-position: -96px -64px;
 }
-.browser-widget .php::before {
+.browser-widget .content ul:not(.ui-menu) .php::before {
     background-position: -32px -32px;
 }
-.browser-widget .html::before {
+.browser-widget .content ul:not(.ui-menu) .html::before {
     background-position: -64px -32px;
 }
-.browser-widget .js::before {
+.browser-widget .content ul:not(.ui-menu) .js::before {
     background-position: -96px 0;
 }
-.browser-widget .json::before {
+.browser-widget .content ul:not(.ui-menu) .json::before {
     background-position: -96px -32px;
 }
-.browser-widget .css::before {
+.browser-widget .content ul:not(.ui-menu) .css::before {
     background-position: 0 -32px;
 }
-.browser-widget .doc::before, .browser-widget .docx::before {
+.browser-widget .content ul:not(.ui-menu) .doc::before,
+.browser-widget .content ul:not(.ui-menu) .docx::before {
     background-position: -64px -64px;
 }
-.browser-widget .xls::before, .browser-widget .xlsx::before {
+.browser-widget .content ul:not(.ui-menu) .xls::before,
+.browser-widget .content ul:not(.ui-menu) .xlsx::before {
     background-position: -32px -96px;
 }
-.browser-widget .ppt::before, .browser-widget .pptx::before {
+.browser-widget .content ul:not(.ui-menu) .ppt::before,
+.browser-widget .content ul:not(.ui-menu) .pptx::before {
     background-position: -64px -96px;
 }
-.browser-widget .jpg::before,
-.browser-widget .jpeg::before,
-.browser-widget .gif::before,
-.browser-widget .bmp::before,
-.browser-widget .png::before {
+.browser-widget .content ul:not(.ui-menu) .jpg::before,
+.browser-widget .content ul:not(.ui-menu) .jpeg::before,
+.browser-widget .content ul:not(.ui-menu) .gif::before,
+.browser-widget .content ul:not(.ui-menu) .bmp::before,
+.browser-widget .content ul:not(.ui-menu) .png::before {
     background-position: 0 -64px;
+}
+.browser-widget .content ul:not(.ui-menu) .md::before,
+.browser-widget .content ul:not(.ui-menu) .markdown::before {
+    background-position: -96px -96px;
 }

@@ -9,12 +9,15 @@
   <link href="http://code.jquery.com/ui/1.12.1/themes/dark-hive/jquery-ui.css" rel="stylesheet"/>
   <link href="../css/jquery.filebrowser-src.css" rel="stylesheet"/>
   <style>
-body {
-    font-size: 10px;
-}
-.ui-dialog .ui-dialog-content {
-    padding: 0;
-}
+   body {
+       font-size: 10px;
+   }
+   .ui-dialog .ui-dialog-content {
+       padding: 0;
+   }
+   .browser-widget .content .selection {
+       border-color: #fff;
+   }
   </style>
   <script>
 $(function() {
@@ -67,22 +70,54 @@ $(function() {
         });
         return current;
     }
-    var browse = $('#browser').dialog().browse({
+    var browse = $('#browser').dialog({
+        width: 600,
+        height: 480
+    }).browse({
         root: '/',
         separator: '/',
-        dir: function(path, callback) {
-            dir = get(path);
-            if ($.isPlainObject(dir)) {
-                var result = {files:[], dirs: []};
-                Object.keys(dir).forEach(function(key) {
-                    if (typeof dir[key] == 'string') {
-                        result.files.push(key);
-                    } else if ($.isPlainObject(dir[key])) {
-                        result.dirs.push(key);
-                    }
-                });
-                callback(result);
+        contextmenu: true,
+        dir: function(path) {
+            return new Promise(function(resolve, reject) {
+                dir = get(path);
+                if ($.isPlainObject(dir)) {
+                    var result = {files:[], dirs: []};
+                    Object.keys(dir).forEach(function(key) {
+                        if (typeof dir[key] == 'string') {
+                            result.files.push(key);
+                        } else if ($.isPlainObject(dir[key])) {
+                            result.dirs.push(key);
+                        }
+                    });
+                    resolve(result);
+                } else {
+                    reject();
+                }
+            });
+        },
+        error: function(message) {
+            alert(message);
+        },
+        create: function(path, type) {
+            var m = path.match(/(.*)\/(.*)/);
+            var parent = get(m[1]);
+            if (type == 'directory') {
+                parent[m[2]] = {};
+            } else {
+                parent[m[2]] = 'Content of new File';
             }
+        },
+        remove: function(path) {
+            var m = path.match(/(.*)\/(.*)/);
+            var parent = get(m[1]);
+            delete parent[m[2]];
+        },
+        rename: function(src, dest) {
+            var m = src.match(/(.*)\/(.*)/);
+            var parent = get(m[1]);
+            var content = parent[m[2]];
+            delete parent[m[2]];
+            parent[dest.replace(/.*\//, '')] = content;
         },
         item_class: function(path, name) {
             return name.match(/[A-Z]:/) ? 'drive' : '';
@@ -102,7 +137,6 @@ $(function() {
 });
   </script>
 </head>
-    <input id="path"/>
     <div id="browser"></div>
 <body>
 </body>

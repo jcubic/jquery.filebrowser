@@ -2,11 +2,12 @@
  *
  * jQuery File Browser - directory browser jQuery plugin version {{VER}}
  *
- * Copyright (c) 2016 Jakub Jankiewicz <http://jcubic.pl>
+ * Copyright (c) 2016-2017 Jakub Jankiewicz <http://jcubic.pl/me>
  * Released under the MIT license
  *
  * Date: {{DATE}}
  */
+/* global setTimeout jQuery File Directory */
 (function($, undefined) {
     'use strict';
     function Uploader(browser, upload, error) {
@@ -131,6 +132,8 @@
             dbclick_delay: 2000,
             open: $.noop,
             rename: $.noop,
+            create: $.noop,
+            remove: $.noop,
             copy: $.noop,
             upload: $.noop,
             name: 'default',
@@ -199,6 +202,11 @@
                 });
             }
         }
+        function mousedown(e) {
+            if (!$(e.target).closest('.menu').length) {
+                hide_menus();
+            }
+        }
         function mouseup(e) {
             selection = false;
             $selection.hide();
@@ -226,7 +234,7 @@
             });
         }
         function keydown(e) {
-            if (self.hasClass('selected') && !rename) {
+            if (self.hasClass('selected') && !$(e.target).is('textarea')) {
                 var current_item;
                 var $active = $content.find('.active');
                 if (e.ctrlKey) {
@@ -290,6 +298,10 @@
             if (!$(e.target).closest('.' + cls).length) {
                 $('.browser-widget').removeClass('selected');
             }
+            var $target = $(e.target);
+            if (!$target.closest('.menu').length || $target.closest('.menu li').length) {
+                hide_menus();
+            }
         }
         function refresh_same() {
             $('.'+cls).each(function() {
@@ -299,15 +311,44 @@
                 }
             });
         }
-        function rename_textarea() {
+        function process_textarea(remove) {
             var $textarea = $(this);
-            var old_name = $textarea.parent().find('span').text();
+            var $li = $textarea.parent();
             var new_name = $textarea.val();
-            if (new_name != old_name) {
-                settings.rename(self.join(path, old_name),
-                                self.join(path, new_name));
-                refresh_same();
+            if ($li.hasClass('rename')) {
+                $textarea.remove();
+                $li.removeClass('rename');
+                var old_name = $li.find('span').text();
+                if (new_name != old_name) {
+                    $.when(settings.rename(self.join(path, old_name),
+                                           self.join(path, new_name))).then(refresh_same);
+                }
+            } else if ($li.hasClass('new')) {
+                if (remove) {
+                    $li.remove();
+                } else {
+                    var type;
+                    if ($li.hasClass('directory')) {
+                        type = 'directory';
+                    } else {
+                        type = 'file';
+                    }
+                    $.when(settings.create(self.join(path, new_name), type)).then(refresh_same);
+                }
             }
+        }
+        function hide_menus() {
+            $('.browser-widget .menu').menu('destroy').remove();
+            $context_target = null;
+        }
+        function scroll_to_bottom() {
+            var scrollHeight;
+            if ($content.prop) {
+                scrollHeight = $content.prop('scrollHeight');
+            } else {
+                scrollHeight = $content.attr('scrollHeight');
+            }
+            $content.scrollTop(scrollHeight);
         }
         if (this.data('browse')) {
             return this.data('browse');
@@ -325,7 +366,7 @@
             var paths = [];
             var current_content;
             var click_time;
-            var rename = false;
+            var textarea = false;
             var num_clicks = 0;
             var $toolbar = $('<div class="toolbar"/>').appendTo(self);
             var $adress_bar = $('<div class="adress-bar"></div>').appendTo($toolbar);
@@ -364,20 +405,31 @@
                     return false;
                 }
             });
+            function trigger_rename($li) {
+                if (!$li.is('.new, .rename')) {
+                    var name = $li.find('span').text();
+                    $('<textarea>'+name+'</textarea>').appendTo($li)
+                        .focus().select();
+                    $li.addClass('rename');
+                } else {
+                    $li.find('textarea').focus().select();
+                }
+            }
+            var $context_target;
             $content.on('dblclick.browse', 'li', function(e) {
-                var $this = $(this);
-                var name = $this.find('span').text();
-                var filename = self.join(path, name);
+                var $li = $(this);
                 var time = ((new Date()).getTime() - click_time);
                 if (time < settings.rename_delay && time < settings.dbclick_delay) {
-                    if ($this.hasClass('directory')) {
-                        $this.removeClass('selected');
+                    var name = $li.find('span').text();
+                    var filename = self.join(path, name);
+                    if ($li.hasClass('directory')) {
+                        $li.removeClass('selected');
                         self.show(filename);
-                    } else if ($this.hasClass('file')) {
+                    } else if ($li.hasClass('file')) {
                         settings.open(filename);
                     }
                 }
-            }).on('click.browse', 'li', function(e) {
+            }).on('click.browse', 'ul:not(.menu) > li', function(e) {
                 if (!selection) {
                     var $target = $(e.target);
                     var $this = $(this);
@@ -390,10 +442,7 @@
                             var time = ((new Date()).getTime() - click_time);
                             if (time > settings.rename_delay &&
                                 time < settings.dbclick_delay) {
-                                $('<textarea>'+name+'</textarea>').appendTo($this)
-                                    .focus().select();
-                                $this.addClass('rename');
-                                rename = true;
+                                trigger_rename($this);
                                 return false;
                             }
                         }
@@ -419,19 +468,84 @@
                         }
                     }
                 }
-            }).on('keypress', 'textarea', function(e) {
-                if (e.which == 13) { // ENTER
-                    rename_textarea.call(this);
-                } else if (e.which == 27) { // ESC
-                    var $this = $(this);
-                    $this.parent().removeClass('rename');
-                    $this.remove();
+            }).on('keydown', 'textarea', function(e) {
+                if (e.which == 13 || e.which == 27) { // ENTER
+                    process_textarea.call(this, e.which == 27);
                 }
                 if ([13, 27].indexOf(e.which) != -1) {
-                    rename = false;
+                    return false;
+                }
+            }).on('contextmenu', function(e) {
+                if (settings.contextmenu && !e.ctrlKey) {
+                    hide_menus();
+                    $context_target = $(e.target);
+                    if (!$context_target.is('textarea')) {
+                        var menu;
+                        var $li = $context_target.closest('li');
+                        if ($li.length) {
+                            $li.addClass('active');
+                            menu = $(['<ul class="menu">',
+                                      '  <li class="rename"><div>rename</div></li>',
+                                      '  <li class="delete"><div>delete</div></li>',
+                                      '</ul>'].join('')).appendTo($content);
+                        } else {
+                            $content.find('li.active').removeClass('active');
+                            menu = $(['<ul class="menu">',
+                                      '  <li class="new"><div>New</div>',
+                                      '    <ul>',
+                                      '      <li class="directory"><div>Directory</div></li>',
+                                      '      <li class="file"><div>File</div></li>',
+                                      '    </ul>',
+                                      '  </li>',
+                                      '</ul>'].join('')).appendTo($content);
+                        }
+                        menu.menu();
+                        var offset = $content.offset();
+                        menu.css({
+                            left: e.pageX - offset.left,
+                            top: e.pageY - offset.top
+                        });
+                        return false;
+                    }
+                }
+            }).on('click', '.menu li', function() {
+                var $menu_li = $(this);
+                if ($context_target) {
+                    var $li = $context_target.closest('ul:not(.menu) li');
+                    Object.keys(menu).forEach(function(selector) {
+                        if ($menu_li.is(selector)) {
+                            menu[selector]($li);
+                        }
+                    });
+                    if (!$menu_li.find('> ul').length) {
+                        hide_menus();
+                    }
                     return false;
                 }
             });
+            var menu = {
+                '.rename': trigger_rename,
+                '.delete': function($li) {
+                    $.when.apply($, $content.find('li.selected').map(function() {
+                        var name = $(this).find('span').text();
+                        return settings.remove(self.join(path, name));
+                    })).then(refresh_same);
+                },
+                '.new .directory': function($li) {
+                    new_item('directory', 'Directory');
+                },
+                '.new .file': function($li) {
+                    new_item('file', 'File');
+                }
+            };
+            function new_item(_class, type) {
+                var $li = $(['<li class="new ' + _class + '" draggable="true">',
+                             '  <span></span>',
+                             '  <textarea/>',
+                             '</li>'].join('')).appendTo($ul);
+                scroll_to_bottom();
+                $li.find('textarea').val('New ' + type).focus().select();
+            }
             self.on('click.browse', function(e) {
                 $('.' + cls).removeClass('selected');
                 self.addClass('selected');
@@ -444,9 +558,8 @@
                     }
                 }
                 if (!$target.is('textarea')) {
-                    $content.find('li.rename').removeClass('rename')
-                        .find('textarea').each(rename_textarea).remove();
-                    rename = false;
+                    $content.find('li.rename,li.new')
+                        .find('textarea').each(process_textarea);
                 }
             });
             self.on('dragover.browse', '.content', function(event) {
@@ -519,7 +632,7 @@
                 return false;
             }).on('mousedown.browse', function(e) {
                 var $target = $(e.target);
-                if (!$target.is('li') && !$target.is('span')) {
+                if (!$target.is('li') && !$target.is('span') && !$target.is('textarea')) {
                     selection = true;
                     was_selecting = false;
                     self.addClass('no-select');
@@ -530,6 +643,7 @@
             });
             $(document).on('click', click)
                 .on('keydown', keydown)
+                .on('mousedown', mousedown)
                 .on('mousemove', mousemove)
                 .on('mouseup', mouseup);
             $.extend(self, {
@@ -551,7 +665,12 @@
                 },
                 destroy: function() {
                     self.off('.browse');
-                    $(document).off('click', click).off('keydown', keydown);
+                    $(document)
+                        .off('click', click)
+                        .off('keydown', keydown)
+                        .off('mousedown', mousedown)
+                        .off('mousemove', mousemove)
+                        .off('mouseup', mouseup);
                     $adress_bar.remove();
                     $content.remove();
                 },
@@ -650,7 +769,9 @@
                         // don't break old API. promise based and callback should both work
                         var result = settings.dir(path, process);
                         if (result && result.then) {
-                            result.then(process);
+                            result.then(process).catch(function() {
+                                process();
+                            });
                         }
                         var run = false;
                         function process(content) {
