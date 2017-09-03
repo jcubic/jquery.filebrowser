@@ -5,7 +5,7 @@
  * Copyright (c) 2016-2017 Jakub Jankiewicz <http://jcubic.pl/me>
  * Released under the MIT license
  *
- * Date: Sun, 03 Sep 2017 14:47:09 +0000
+ * Date: Sun, 03 Sep 2017 16:10:22 +0000
  */
 /* global setTimeout jQuery File Directory */
 (function($, undefined) {
@@ -120,7 +120,7 @@
     $.browse = {
         defaults: {
             dir: function() {
-                return {files:[], dirs: []};
+                return $.when({files:[], dirs: []});
             },
             root: '/',
             separator: '/',
@@ -805,6 +805,10 @@
                                     }
                                 });
                                 self.removeClass('hidden');
+                                var re = new RegExp($.browse.escape_regex(settings.separator) + '$');
+                                if (!new_path.match(re) && new_path != settings.root) {
+                                    new_path += settings.separator;
+                                }
                                 $adress.val(new_path);
                                 settings.change.call(self);
                                 options.callback();
@@ -827,7 +831,7 @@
                     var separator = new RegExp($.browse.escape_regex(settings.separator) + '$');
                     filename = filename.replace(root, '').replace(separator, '');
                     if (filename) {
-                        return filename.split(settings.separator);
+                        return filename.split(settings.separator).filter(Boolean);
                     } else {
                         return [];
                     }

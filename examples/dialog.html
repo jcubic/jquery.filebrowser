@@ -119,9 +119,6 @@ $(function() {
             delete parent[m[2]];
             parent[dest.replace(/.*\//, '')] = content;
         },
-        item_class: function(path, name) {
-            return name.match(/[A-Z]:/) ? 'drive' : '';
-        },
         open: function(filename) {
             var file = get(filename);
             if (typeof file == 'string') {

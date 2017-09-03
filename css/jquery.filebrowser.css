@@ -5,7 +5,7 @@
  * Copyright (c) 2016-2017 Jakub Jankiewicz <http://jcubic.pl/me>
  * Released under the MIT license
  *
- * Date: Sun, 03 Sep 2017 14:47:10 +0000
+ * Date: Sun, 03 Sep 2017 16:10:22 +0000
  */
 .browser-widget.hidden, .browser-widget .hidden {
     visibility: hidden;
@@ -153,7 +153,7 @@
 .browser-widget ul.labels li.refresh::before {
     background-position: -96px -160px
 }
-.browser-widget .drive::before {
+.browser-widget .content ul:not(.ui-menu) .drive::before {
     background-position: 0 -128px;
 }
 .browser-widget .content ul:not(.ui-menu) .file::before {

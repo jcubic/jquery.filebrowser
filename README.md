@@ -66,6 +66,24 @@ more examples and usage in [examples directory](https://github.com/jcubic/jquery
 
 If you want context menu (enabled using contextmenu option) you'll need jQuery UI and of course you need jQuery itself.
 
+# Options
+
+* name - used to distinguish different filesystem for copying nad moving files (rename)
+* dir - function that should return a promise that resolve to object `{files: <ARRAY>, dirs: <ARRAY>}` or return that object
+* separator - path separator (a string) usualy `/` or `\` (to use `\` you need to put `'\\'`) default /
+* root - root of the filesystem, it can be any path like `/home/<user>`, default `/`
+* change - callback function that's called on refresh of the directory
+* init - callack executed on initalization of the plugin
+* item_class - function that should return addiional classes for the element (directory or file) you can use this to have different icons for C or D drive that's in root directory, see [windows example](https://github.com/jcubic/jquery.filebrowser/tree/master/examples/windows.html)
+* dbclick_delay - if the time of the second click is lower then this but hight then rename_delay it's consider as action for rename a file or directory
+* open - callback function executed with path of the file when you double click on the file
+* rename - callback function called with old path nad new path when you rename a file or direcoty
+* create - callback called with path of the new file or directory and string 'directory' or 'file' as second argument
+* copy - callback executed when you copy a file using CTRL+C and CTRL+V
+* upload - callback called with file object and the path when you drag and drop a file or directory to browser container, you can also drag into visible directory
+* error - called when error accured like when you try to enter invalid path in address bar
+* refresh_timer - timeout after fetch of the content of the file in miliseconds, used to see visible refresh when you change direcotry (you can set it to 0), default 100
+
 # License
 
 Licensed under [MIT](http://opensource.org/licenses/MIT) license
