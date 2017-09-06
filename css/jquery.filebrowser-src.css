@@ -15,9 +15,10 @@
     margin: 0;
     padding: 0;
 }
-.browser-widget ul.ui-menu {
+.browser-menu {
     float: left;
     position: absolute;
+    z-index: 99999999;
 }
 .browser-widget li[draggable] {
   /* Required to make elements draggable in old WebKit */

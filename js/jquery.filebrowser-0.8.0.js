@@ -5,7 +5,7 @@
  * Copyright (c) 2016-2017 Jakub Jankiewicz <http://jcubic.pl/me>
  * Released under the MIT license
  *
- * Date: Sun, 03 Sep 2017 16:10:22 +0000
+ * Date: Wed, 06 Sep 2017 07:27:03 +0000
  */
 /* global setTimeout jQuery File Directory */
 (function($, undefined) {
@@ -203,7 +203,7 @@
             }
         }
         function mousedown(e) {
-            if (!$(e.target).closest('.menu').length) {
+            if (!$(e.target).closest('.browser-menu').length) {
                 hide_menus();
             }
         }
@@ -299,7 +299,22 @@
                 $('.browser-widget').removeClass('selected');
             }
             var $target = $(e.target);
-            if (!$target.closest('.menu').length || $target.closest('.menu li').length) {
+            var $menu_li = $target.closest('.browser-menu li');
+            if ($menu_li.length) {
+                if ($context_target) {
+                    var $li = $context_target.closest('ul:not(.menu) li');
+                    Object.keys(menu).forEach(function(selector) {
+                        if ($menu_li.is(selector)) {
+                            menu[selector]($li);
+                        }
+                    });
+                    if (!$menu_li.find('> ul').length) {
+                        hide_menus();
+                    }
+                    return false;
+                }
+            } else if (!$target.closest('.browser-menu').length ||
+                $target.closest('.browser-menu li').length) {
                 hide_menus();
             }
         }
@@ -338,7 +353,7 @@
             }
         }
         function hide_menus() {
-            $('.browser-widget .menu').menu('destroy').remove();
+            $('.browser-menu').menu('destroy').remove();
             $context_target = null;
         }
         function scroll_to_bottom() {
@@ -387,6 +402,21 @@
             var $selection = $('<div/>').addClass('selection').hide().appendTo($content);
             var selection = false;
             var was_selecting = false;
+            var menu = {
+                '.rename': trigger_rename,
+                '.delete': function($li) {
+                    $.when.apply($, $content.find('li.selected').map(function() {
+                        var name = $(this).find('span').text();
+                        return settings.remove(self.join(path, name));
+                    })).then(refresh_same);
+                },
+                '.new .directory': function($li) {
+                    new_item('directory', 'Directory');
+                },
+                '.new .file': function($li) {
+                    new_item('file', 'File');
+                }
+            };
             $toolbar.on('click.browse', 'li', function() {
                 var $this = $(this);
                 if (!$this.hasClass('disabled')) {
@@ -484,60 +514,31 @@
                         var $li = $context_target.closest('li');
                         if ($li.length) {
                             $li.addClass('active');
-                            menu = $(['<ul class="menu">',
+                            menu = $(['<ul class="browser-menu">',
                                       '  <li class="rename"><div>rename</div></li>',
                                       '  <li class="delete"><div>delete</div></li>',
-                                      '</ul>'].join('')).appendTo($content);
+                                      '</ul>'].join('')).appendTo('body');
                         } else {
                             $content.find('li.active').removeClass('active');
-                            menu = $(['<ul class="menu">',
+                            menu = $(['<ul class="browser-menu">',
                                       '  <li class="new"><div>New</div>',
                                       '    <ul>',
                                       '      <li class="directory"><div>Directory</div></li>',
                                       '      <li class="file"><div>File</div></li>',
                                       '    </ul>',
                                       '  </li>',
-                                      '</ul>'].join('')).appendTo($content);
+                                      '</ul>'].join('')).appendTo('body');
                         }
                         menu.menu();
                         var offset = $content.offset();
                         menu.css({
-                            left: e.pageX - offset.left,
-                            top: e.pageY - offset.top
+                            left: e.pageX,
+                            top: e.pageY
                         });
                         return false;
                     }
                 }
-            }).on('click', '.menu li', function() {
-                var $menu_li = $(this);
-                if ($context_target) {
-                    var $li = $context_target.closest('ul:not(.menu) li');
-                    Object.keys(menu).forEach(function(selector) {
-                        if ($menu_li.is(selector)) {
-                            menu[selector]($li);
-                        }
-                    });
-                    if (!$menu_li.find('> ul').length) {
-                        hide_menus();
-                    }
-                    return false;
-                }
             });
-            var menu = {
-                '.rename': trigger_rename,
-                '.delete': function($li) {
-                    $.when.apply($, $content.find('li.selected').map(function() {
-                        var name = $(this).find('span').text();
-                        return settings.remove(self.join(path, name));
-                    })).then(refresh_same);
-                },
-                '.new .directory': function($li) {
-                    new_item('directory', 'Directory');
-                },
-                '.new .file': function($li) {
-                    new_item('file', 'File');
-                }
-            };
             function new_item(_class, type) {
                 var $li = $(['<li class="new ' + _class + '" draggable="true">',
                              '  <span></span>',
