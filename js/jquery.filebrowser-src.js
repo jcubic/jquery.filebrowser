@@ -138,6 +138,9 @@
             upload: $.noop,
             name: 'default',
             error: $.noop,
+            menu: function(type) {
+                return {};
+            },
             refresh_timer: 100
         },
         strings: {
@@ -301,15 +304,19 @@
             var $target = $(e.target);
             var $menu_li = $target.closest('.browser-menu li');
             if ($menu_li.length) {
-                if ($context_target) {
-                    var $li = $context_target.closest('ul:not(.menu) li');
-                    Object.keys(menu).forEach(function(selector) {
-                        if ($menu_li.is(selector)) {
-                            menu[selector]($li);
-                        }
+                if (context_menu_object) {
+                    var $li = context_menu_object.target.closest('ul:not(.menu) li');
+                    var menu = context_menu_object.menu;
+                    $menu_li.parents('.ui-menu-item').addBack().each(function() {
+                        menu = menu[$(this).find('> div').text()];
                     });
                     if (!$menu_li.find('> ul').length) {
                         hide_menus();
+                    }
+                    if ($.isFunction(menu)) {
+                        setTimeout(function() {
+                            menu.call(self, $li);
+                        }, 0);
                     }
                     return false;
                 }
@@ -335,8 +342,8 @@
                 $li.removeClass('rename');
                 var old_name = $li.find('span').text();
                 if (new_name != old_name) {
-                    $.when(settings.rename(self.join(path, old_name),
-                                           self.join(path, new_name))).then(refresh_same);
+                    self._rename(self.join(path, old_name),
+                                 self.join(path, new_name)).then(refresh_same);
                 }
             } else if ($li.hasClass('new')) {
                 if (remove) {
@@ -348,13 +355,13 @@
                     } else {
                         type = 'file';
                     }
-                    $.when(settings.create(self.join(path, new_name), type)).then(refresh_same);
+                    self.create(type, self.join(path, new_name));
                 }
             }
         }
         function hide_menus() {
-            $('.browser-menu').menu('destroy').remove();
-            $context_target = null;
+            $('body > .browser-menu').menu('destroy').remove();
+            context_menu_object = null;
         }
         function scroll_to_bottom() {
             var scrollHeight;
@@ -364,6 +371,25 @@
                 scrollHeight = $content.attr('scrollHeight');
             }
             $content.scrollTop(scrollHeight);
+        }
+        function make_menu(context, submenu) {
+            var $ul = $('<ul/>');
+            if (!submenu) {
+                $ul.addClass('browser-menu');
+            }
+            Object.keys(context).forEach(function(name) {
+                var $li = $('<li class="' + class_name(name) + '"><div>' + name + '</div></li>')
+                    .appendTo($ul);
+                if ($.isPlainObject(context[name])) {
+                    $li.append(make_menu(context[name], true));
+                }
+            });
+            return $ul;
+        }
+        function class_name(string) {
+            return string.toLowerCase().replace(/\s+([^\s])/g, function(_, letter) {
+                return '-' + letter;
+            });
         }
         if (this.data('browse')) {
             return this.data('browse');
@@ -402,19 +428,26 @@
             var $selection = $('<div/>').addClass('selection').hide().appendTo($content);
             var selection = false;
             var was_selecting = false;
-            var menu = {
-                '.rename': trigger_rename,
-                '.delete': function($li) {
-                    $.when.apply($, $content.find('li.selected').map(function() {
-                        var name = $(this).find('span').text();
-                        return settings.remove(self.join(path, name));
-                    })).then(refresh_same);
+            var context_menu_object;
+            var context_menu = {
+                li: {
+                    'rename': trigger_rename,
+                    'delete': function($li) {
+                        $.when.apply($, $content.find('li.selected').map(function() {
+                            var name = $(this).find('span').text();
+                            return settings.remove(self.join(path, name));
+                        })).then(refresh_same);
+                    }
                 },
-                '.new .directory': function($li) {
-                    new_item('directory', 'Directory');
-                },
-                '.new .file': function($li) {
-                    new_item('file', 'File');
+                'content': {
+                    'new': {
+                        'directory': function($li) {
+                            self.create('Directory');
+                        },
+                        'file': function($li) {
+                            self.create('File');
+                        }
+                    }
                 }
             };
             $toolbar.on('click.browse', 'li', function() {
@@ -445,7 +478,6 @@
                     $li.find('textarea').focus().select();
                 }
             }
-            var $context_target;
             $content.on('dblclick.browse', 'li', function(e) {
                 var $li = $(this);
                 var time = ((new Date()).getTime() - click_time);
@@ -508,30 +540,18 @@
             }).on('contextmenu', function(e) {
                 if (settings.contextmenu && !e.ctrlKey) {
                     hide_menus();
-                    $context_target = $(e.target);
-                    if (!$context_target.is('textarea')) {
-                        var menu;
-                        var $li = $context_target.closest('li');
-                        if ($li.length) {
-                            $li.addClass('active');
-                            menu = $(['<ul class="browser-menu">',
-                                      '  <li class="rename"><div>rename</div></li>',
-                                      '  <li class="delete"><div>delete</div></li>',
-                                      '</ul>'].join('')).appendTo('body');
-                        } else {
-                            $content.find('li.active').removeClass('active');
-                            menu = $(['<ul class="browser-menu">',
-                                      '  <li class="new"><div>New</div>',
-                                      '    <ul>',
-                                      '      <li class="directory"><div>Directory</div></li>',
-                                      '      <li class="file"><div>File</div></li>',
-                                      '    </ul>',
-                                      '  </li>',
-                                      '</ul>'].join('')).appendTo('body');
-                        }
-                        menu.menu();
+                    context_menu_object = {target: $(e.target)};
+                    if (!context_menu_object.target.is('textarea')) {
+                        var $li = context_menu_object.target.closest('li');
+                        context_menu_object.type = $li.length ? 'li' : 'content';
+                        context_menu_object.menu = $.extend(
+                            context_menu[context_menu_object.type],
+                            settings.menu(context_menu_object.type) || {}
+                        );
+                        var $menu = make_menu(context_menu_object.menu).appendTo('body');
+                        $menu.menu();
                         var offset = $content.offset();
-                        menu.css({
+                        $menu.css({
                             left: e.pageX,
                             top: e.pageY
                         });
@@ -539,14 +559,6 @@
                     }
                 }
             });
-            function new_item(_class, type) {
-                var $li = $(['<li class="new ' + _class + '" draggable="true">',
-                             '  <span></span>',
-                             '  <textarea/>',
-                             '</li>'].join('')).appendTo($ul);
-                scroll_to_bottom();
-                $li.find('textarea').val('New ' + type).focus().select();
-            }
             self.on('click.browse', function(e) {
                 $('.' + cls).removeClass('selected');
                 self.addClass('selected');
@@ -677,10 +689,25 @@
                 },
                 _rename: function(src, dest) {
                     if (!same_root(src, dest)) {
-                        return settings.rename(src, dest);
+                        return $.when(settings.rename(src, dest));
                     } else {
                         return $.when();
                     }
+                },
+                _create: function(type, path) {
+                    return $.when(settings.create(type, path));
+                },
+                create: function(type, path) {
+                    if (path == undefined) {
+                        var $li = $(['<li class="new ' + class_name(type) + '" draggable="true">',
+                             '  <span></span>',
+                             '  <textarea/>',
+                             '</li>'].join('')).appendTo($ul);
+                        scroll_to_bottom();
+                        $li.find('textarea').val('New ' + type).focus().select();
+                        return $.when();
+                    }
+                    return self._create(type, path).then(refresh_same);
                 },
                 _copy: function(src, dest) {
                     if (!same_root(src, dest)) {
@@ -841,7 +868,7 @@
                     var path = this.split(filename);
                     var result;
                     while(path.length) {
-                        result = fn(path.shift(), !path.length);
+                        result = fn(path.shift(), !path.length, result);
                     }
                     return result;
                 }

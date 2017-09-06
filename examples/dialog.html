@@ -77,6 +77,26 @@ $(function() {
         root: '/',
         separator: '/',
         contextmenu: true,
+        menu: function(type) {
+            if (type == 'li') {
+                return {
+                    'alert': function($li) {
+                        alert('alert for item ' + $li.text());
+                    }
+                }
+            }  else {
+                return {
+                    'Create File': function() {
+                        var name = prompt('name: ');
+                        var path;
+                        if (name) {
+                            path = this.join(this.path(), name);
+                        }
+                        this.create('file', path);
+                    }
+                };
+            }
+        },
         dir: function(path) {
             return new Promise(function(resolve, reject) {
                 dir = get(path);
@@ -98,7 +118,7 @@ $(function() {
         error: function(message) {
             alert(message);
         },
-        create: function(path, type) {
+        create: function(type, path) {
             var m = path.match(/(.*)\/(.*)/);
             var parent = get(m[1]);
             if (type == 'directory') {

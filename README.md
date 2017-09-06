@@ -83,6 +83,47 @@ If you want context menu (enabled using contextmenu option) you'll need jQuery U
 * upload - callback called with file object and the path when you drag and drop a file or directory to browser container, you can also drag into visible directory
 * error - called when error accured like when you try to enter invalid path in address bar
 * refresh_timer - timeout after fetch of the content of the file in miliseconds, used to see visible refresh when you change direcotry (you can set it to 0), default 100
+* menu - should return object which keys are names of the context menu and values are other object (they will create submenus) or a function that will be executed when menu item is click it acceppt single argument string 'li' or 'content' depend if you click on file/directory or on empty browser space. example:
+
+```javascript
+    menu: function(type) {
+        if (type == 'li') {
+            return {
+                'alert': function($li) {
+                    alert('alert for item ' + $li.text());
+                }
+            }
+        }  else {
+            return {
+                'Create File': function() {
+                    var name = prompt('name: ');
+                    var path;
+                    if (name) {
+                        path = this.join(this.path(), name);
+                    }
+                    this.create('file', path);
+                }
+            };
+        }
+    },
+```
+
+# API methods
+
+* path - return current path
+* name - return settings name
+* back - go back one directory
+* destroy - remove all events and DOM nodes
+* create - function(type, [path]) - create new directory of file (depend of first argument which is string 'file' or 'directory') if there is second argument it will create new file/directory of it's undefined it will create placeholder for file/directory with textarea to enter name
+* copy - selected files/directories for later paste
+* cut - like copy but when call paste it will remove old items
+* paste - if cut was executed it will call settings.rename and if copy was called it will call settings.copy and then refresh all views with the same directory
+* up - go up one directory
+* show - call settings.dir and rerender the directory view
+* join - return new path based on settings.separator and settings.root, accept any number of arguments
+* split - split the path using settings.separator and settings.root
+* walk - function(filename, fn) - call function for each file/directory the signature for callaback function: function(path_part, last, return_value) the function return value from last call to callback function, 3rd argument is a value from previous call to callback function.
+
 
 # License
 
