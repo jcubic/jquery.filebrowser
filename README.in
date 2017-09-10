@@ -70,6 +70,7 @@ If you want context menu (enabled using contextmenu option) you'll need jQuery U
 
 * name - used to distinguish different filesystem for copying nad moving files (rename)
 * dir - function that should return a promise that resolve to object `{files: <ARRAY>, dirs: <ARRAY>}` or return that object
+* exists - function that will return true/false or a promise that resolve to true/false that indicate if file or directory exists (used when create new file/directory)
 * separator - path separator (a string) usualy `/` or `\` (to use `\` you need to put `'\\'`) default /
 * root - root of the filesystem, it can be any path like `/home/<user>`, default `/`
 * change - callback function that's called on refresh of the directory

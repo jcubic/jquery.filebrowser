@@ -115,6 +115,9 @@ body {
                }
                return $.when(result); // resolved promise
            },
+           exists: function(path) {
+               return typeof get(path) != 'undefined';
+           },
            upload: function(file, path) {
                return upload(file, path);
            },

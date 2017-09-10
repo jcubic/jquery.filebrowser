@@ -81,7 +81,7 @@ $(function() {
             if (type == 'li') {
                 return {
                     'alert': function($li) {
-                        alert('alert for item ' + $li.text());
+                        alert('alert for item "' + $li.text() + '"');
                     }
                 }
             }  else {
@@ -114,6 +114,9 @@ $(function() {
                     reject();
                 }
             });
+        },
+        exists: function(path) {
+            return typeof get(path) != 'undefined';
         },
         error: function(message) {
             alert(message);

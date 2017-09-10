@@ -135,6 +135,7 @@
             create: $.noop,
             remove: $.noop,
             copy: $.noop,
+            exists: $.noop,
             upload: $.noop,
             name: 'default',
             error: $.noop,
@@ -622,7 +623,7 @@
                 } else {
                     if (self.name() !== drag.context.name()) {
                         var msg = "You can't drag across different filesystems";
-                        throw new Error(msg);
+                        settings.error(msg);
                     }
                     var promise;
                     if (drag.selection) {
@@ -697,9 +698,13 @@
                 _create: function(type, path) {
                     return $.when(settings.create(type, path));
                 },
+                _exists: function(path) {
+                    return $.when(settings.exists(path));
+                },
                 create: function(type, path) {
+                    var _class = class_name(type);
                     if (path == undefined) {
-                        var $li = $(['<li class="new ' + class_name(type) + '" draggable="true">',
+                        var $li = $(['<li class="new ' + _class + '" draggable="true">',
                              '  <span></span>',
                              '  <textarea/>',
                              '</li>'].join('')).appendTo($ul);
@@ -707,7 +712,16 @@
                         $li.find('textarea').val('New ' + type).focus().select();
                         return $.when();
                     }
-                    return self._create(type, path).then(refresh_same);
+                    return self._exists(path).then(function(exists) {
+                        if (exists == true) {
+                            $content.find('li.new').remove();
+                            setTimeout(function() {
+                                settings.error(type + ' already exists');
+                            }, 10);
+                        } else {
+                            return self._create(type, path).then(refresh_same);
+                        }
+                    });
                 },
                 _copy: function(src, dest) {
                     if (!same_root(src, dest)) {
@@ -742,7 +756,7 @@
                     }
                     if (copy && copy.contents && copy.contents.length) {
                         if (self.name() !== copy.source.name()) {
-                            throw new Error("You can't paste across different filesystems");
+                            settings.error("You can't paste across different filesystems");
                         } else {
                             var promise;
                             if (cut) {

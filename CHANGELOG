@@ -1,5 +1,6 @@
 0.8.0    context menu
          allow to create new file/directory
+         exists option executed before creating new file/directory
          markdown icon
          few bug fixes
 0.7.3    prevent opening file on enter when focus in adress bar
