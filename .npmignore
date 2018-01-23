@@ -4,6 +4,7 @@ bower.*
 package.in
 Makefile*
 README.in
+node_modules
 examples
 bin
 css/jquery.filebrowser-*.css
