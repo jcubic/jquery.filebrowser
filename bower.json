@@ -13,16 +13,15 @@
         "bower.in",
         "Makefile",
         "Makefile.in",
-		".gitignore",
-		".npmignore",
-		"package.in",
-		"package.json",
-		"bin",
-		"version"
-		
+        ".gitignore",
+        ".npmignore",
+        "package.in",
+        "package.json",
+        "bin",
+        "version"
     ],
     "dependencies": {
-        "jquery": "~2"
+        "jquery": "~3"
     },
     "devDependencies": {}
 }
