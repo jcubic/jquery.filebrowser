@@ -2,7 +2,7 @@
  *
  * jQuery File Browser - directory browser jQuery plugin version {{VER}}
  *
- * Copyright (c) 2016-2017 Jakub Jankiewicz <http://jcubic.pl/me>
+ * Copyright (c) 2016-2018 Jakub Jankiewicz <http://jcubic.pl/me>
  * Released under the MIT license
  *
  * Date: {{DATE}}
@@ -175,8 +175,12 @@
             return sum + prop;
         });
     }
-    function same_root(src, dest) {
-        return src === dest || dest.match(new RegExp('^' + $.browse.escape_regex(src)));
+    function same_root(self, src, dest) {
+        if (src === dest) {
+            return true;
+        }
+        dest = self.join.apply(self, self.split(dest).slice(0, -1));
+        return !!dest.match(new RegExp('^' + $.browse.escape_regex(src)));
     }
     $.fn.browse = function(options) {
         var settings = $.extend({}, $.browse.defaults, options);
@@ -392,6 +396,28 @@
                 return '-' + letter;
             });
         }
+        function trigger_rename($li) {
+            if (!$li.is('.new, .rename')) {
+                var name = $li.find('span').text();
+                $('<textarea>'+name+'</textarea>').appendTo($li)
+                    .focus().select();
+                $li.addClass('rename');
+            } else {
+                $li.find('textarea').focus().select();
+            }
+        }
+        function is_file_drop(event) {
+            if (event.originalEvent) {
+                event = event.originalEvent;
+            }
+            if (event.dataTransfer.items && event.dataTransfer.items.length) {
+                return !![].filter.call(event.dataTransfer.items, function(item) {
+                    return item.kind == 'file';
+                }).length;
+            } else {
+                return event.dataTransfer.files && event.dataTransfer.files.length;
+            }
+        }
         if (this.data('browse')) {
             return this.data('browse');
         } else if (this.length > 1) {
@@ -469,16 +495,6 @@
                     return false;
                 }
             });
-            function trigger_rename($li) {
-                if (!$li.is('.new, .rename')) {
-                    var name = $li.find('span').text();
-                    $('<textarea>'+name+'</textarea>').appendTo($li)
-                        .focus().select();
-                    $li.addClass('rename');
-                } else {
-                    $li.find('textarea').focus().select();
-                }
-            }
             $content.on('dblclick.browse', 'li', function(e) {
                 var $li = $(this);
                 var time = ((new Date()).getTime() - click_time);
@@ -594,18 +610,6 @@
                 };
                 drag.selection = $this.hasClass('selected');
             });
-            function is_file_drop(event) {
-                if (event.originalEvent) {
-                    event = event.originalEvent;
-                }
-                if (event.dataTransfer.items && event.dataTransfer.items.length) {
-                    return !![].filter.call(event.dataTransfer.items, function(item) {
-                        return item.kind == 'file';
-                    }).length;
-                } else {
-                    return event.dataTransfer.files && event.dataTransfer.files.length;
-                }
-            }
             $content.on('drop.browse', function(e) {
                 var $target = $(e.target);
                 var new_path;
@@ -629,7 +633,7 @@
                     if (drag.selection) {
                         promise = $.when.appy($, selected[settings.name].map(function(src) {
                             var dest = self.join(new_path, self.split(src).pop());
-                            if (!same_root(src, dest)) {
+                            if (!same_root(self, src, dest)) {
                                 return self._rename(src, dest);
                             }
                         }));
@@ -689,7 +693,8 @@
                     $content.remove();
                 },
                 _rename: function(src, dest) {
-                    if (!same_root(src, dest)) {
+                    var same = same_root(self, src, dest);
+                    if (!same) {
                         return $.when(settings.rename(src, dest));
                     } else {
                         return $.when();
@@ -724,7 +729,7 @@
                     });
                 },
                 _copy: function(src, dest) {
-                    if (!same_root(src, dest)) {
+                    if (!same_root(self, src, dest)) {
                         return settings.copy(src, dest);
                     } else {
                         return $.when();
@@ -747,7 +752,7 @@
                         return $.when.apply($, copy.contents.map(function(src) {
                             var name = widget.split(src).pop();
                             var dest = widget.join(path, name);
-                            if (!same_root(src, dest)) {
+                            if (!same_root(self, src, dest)) {
                                 return widget[fn](src, dest);
                             } else {
                                 return $.when();
@@ -798,6 +803,46 @@
                     });
                 },
                 show: function(new_path, options) {
+                    function process(content) {
+                        if (run) {
+                            return;
+                        }
+                        run = true;
+                        if (!content) {
+                            settings.error('Invalid directory');
+                            self.removeClass('hidden');
+                        } else {
+                            current_content = content;
+                            $ul.empty();
+                            current_content.dirs.forEach(function(dir) {
+                                var cls = settings.item_class(new_path, dir);
+                                var $li = $('<li class="directory"><span>' + dir + '</span></li>').
+                                        appendTo($ul).attr('draggable', true);
+                                if (cls) {
+                                    $li.addClass(cls);
+                                }
+                            });
+                            current_content.files.forEach(function(file) {
+                                var $li = $('<li class="file"><span>' + file + '</span></li>').
+                                        appendTo($ul).attr('draggable', true);
+                                if (file.match('.')) {
+                                    $li.addClass(file.split('.').pop());
+                                }
+                                var cls = settings.item_class(new_path, file);
+                                if (cls) {
+                                    $li.addClass(cls);
+                                }
+                            });
+                            self.removeClass('hidden');
+                            var re = new RegExp($.browse.escape_regex(settings.separator) + '$');
+                            if (!new_path.match(re) && new_path != settings.root) {
+                                new_path += settings.separator;
+                            }
+                            $adress.val(new_path);
+                            settings.change.call(self);
+                            options.callback();
+                        }
+                    }
                     var defaults = {callback: $.noop, push: true, force: false};
                     options = $.extend({}, defaults, options);
                     if (path != new_path || options.force) {
@@ -816,46 +861,6 @@
                             });
                         }
                         var run = false;
-                        function process(content) {
-                            if (run) {
-                                return;
-                            }
-                            run = true;
-                            if (!content) {
-                                settings.error('Invalid directory');
-                                self.removeClass('hidden');
-                            } else {
-                                current_content = content;
-                                $ul.empty();
-                                current_content.dirs.forEach(function(dir) {
-                                    var cls = settings.item_class(new_path, dir);
-                                    var $li = $('<li class="directory"><span>' + dir + '</span></li>').
-                                        appendTo($ul).attr('draggable', true);
-                                    if (cls) {
-                                        $li.addClass(cls);
-                                    }
-                                });
-                                current_content.files.forEach(function(file) {
-                                    var $li = $('<li class="file"><span>' + file + '</span></li>').
-                                        appendTo($ul).attr('draggable', true);
-                                    if (file.match('.')) {
-                                        $li.addClass(file.split('.').pop());
-                                    }
-                                    var cls = settings.item_class(new_path, file);
-                                    if (cls) {
-                                        $li.addClass(cls);
-                                    }
-                                });
-                                self.removeClass('hidden');
-                                var re = new RegExp($.browse.escape_regex(settings.separator) + '$');
-                                if (!new_path.match(re) && new_path != settings.root) {
-                                    new_path += settings.separator;
-                                }
-                                $adress.val(new_path);
-                                settings.change.call(self);
-                                options.callback();
-                            }
-                        }
                     }
                     return self;
                 },
