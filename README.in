@@ -128,4 +128,4 @@ If you want context menu (enabled using contextmenu option) you'll need jQuery U
 
 Licensed under [MIT](http://opensource.org/licenses/MIT) license
 
-Copyright (c) 2016-2017 [Jakub Jankiewicz](http://jcubic.pl/me)
+Copyright (c) 2016-2018 [Jakub Jankiewicz](http://jcubic.pl/me)
