@@ -2,10 +2,10 @@
  *
  * jQuery File Browser - directory browser jQuery plugin version 0.8.2
  *
- * Copyright (c) 2016-2018 Jakub Jankiewicz <http://jcubic.pl/me>
+ * Copyright (c) 2016-2018 Jakub T. Jankiewicz <https://jcubic.pl/me>
  * Released under the MIT license
  *
- * Date: Wed, 05 Sep 2018 18:29:10 +0000
+ * Date: Sun, 30 Dec 2018 18:25:34 +0000
  */
 /* global setTimeout jQuery File Directory */
 (function($, undefined) {
