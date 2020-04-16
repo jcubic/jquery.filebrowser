@@ -1,4 +1,6 @@
 # jQuery File Browser version 0.8.2
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjcubic%2Fjquery.filebrowser.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjcubic%2Fjquery.filebrowser?ref=badge_shield)
+
 
 jQuery File Browser is a plugin for creating OS like file browsers.
 
@@ -129,3 +131,6 @@ If you want context menu (enabled using contextmenu option) you'll need jQuery U
 Licensed under [MIT](http://opensource.org/licenses/MIT) license
 
 Copyright (c) 2016-2018 [Jakub T. Jankiewicz](https://jcubic.pl/me)
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjcubic%2Fjquery.filebrowser.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjcubic%2Fjquery.filebrowser?ref=badge_large)
