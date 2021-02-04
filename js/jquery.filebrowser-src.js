@@ -2,7 +2,7 @@
  *
  * jQuery File Browser - directory browser jQuery plugin version {{VER}}
  *
- * Copyright (c) 2016-2018 Jakub T. Jankiewicz <https://jcubic.pl/me>
+ * Copyright (c) 2016-2021 Jakub T. Jankiewicz <https://jcubic.pl/me>
  * Released under the MIT license
  *
  * Date: {{DATE}}
