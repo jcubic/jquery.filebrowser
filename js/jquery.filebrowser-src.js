@@ -365,7 +365,9 @@
             }
         }
         function hide_menus() {
-            $('body > .browser-menu').menu('destroy').remove();
+            if ($.fn.menu) {
+                $('body > .browser-menu').menu('destroy').remove();
+            }
             context_menu_object = null;
         }
         function scroll_to_bottom() {

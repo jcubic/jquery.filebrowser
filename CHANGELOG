@@ -1,3 +1,6 @@
+0.8.3    check if menu plugin from jQuery exists before calling
+0.8.2    fix rename when file start with the same string #1
+0.8.1    remove condesponsor ad from README
 0.8.0    context menu
          allow to create new file/directory
          exists option executed before creating new file/directory

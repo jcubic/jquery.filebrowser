@@ -5,7 +5,7 @@
  * Copyright (c) 2016-2018 Jakub T. Jankiewicz <https://jcubic.pl/me>
  * Released under the MIT license
  *
- * Date: Sun, 30 Dec 2018 18:25:34 +0000
+ * Date: Thu, 04 Feb 2021 08:33:31 +0000
  */
 /* global setTimeout jQuery File Directory */
 (function($, undefined) {
@@ -365,7 +365,9 @@
             }
         }
         function hide_menus() {
-            $('body > .browser-menu').menu('destroy').remove();
+            if ($.fn.menu) {
+                $('body > .browser-menu').menu('destroy').remove();
+            }
             context_menu_object = null;
         }
         function scroll_to_bottom() {
