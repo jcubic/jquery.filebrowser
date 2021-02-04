@@ -76,7 +76,8 @@ If you want context menu (enabled using contextmenu option) you'll need jQuery U
 * item_class - function that should return addiional classes for the element (directory or file) you can use this to have different icons for C or D drive that's in root directory, see [windows example](https://github.com/jcubic/jquery.filebrowser/tree/master/examples/windows.html)
 * dbclick_delay - if the time of the second click is lower then this but hight then rename_delay it's consider as action for rename a file or directory
 * open - callback function executed with path of the file when you double click on the file
-* rename - callback function called with old path nad new path when you rename a file or direcoty
+* rename - callback function called with old path nad new path when you rename a file or directory
+* remove - callback function called with path when you delete file or directory
 * create - callback called with path of the new file or directory and string 'directory' or 'file' as second argument
 * copy - callback executed when you copy a file using CTRL+C and CTRL+V
 * upload - callback called with file object and the path when you drag and drop a file or directory to browser container, you can also drag into visible directory
