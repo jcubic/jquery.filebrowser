@@ -1,11 +1,11 @@
 /**@license
  *
- * jQuery File Browser - directory browser jQuery plugin version 0.8.2
+ * jQuery File Browser - directory browser jQuery plugin version 0.8.3
  *
  * Copyright (c) 2016-2021 Jakub T. Jankiewicz <https://jcubic.pl/me>
  * Released under the MIT license
  *
- * Date: Thu, 04 Feb 2021 08:39:43 +0000
+ * Date: Thu, 04 Feb 2021 08:49:31 +0000
  */
 /* global setTimeout jQuery File Directory */
 (function($, undefined) {
