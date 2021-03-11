@@ -1,4 +1,4 @@
-# jQuery File Browser version 0.8.3
+# [jQuery File Browser](https://github.com/jcubic/jquery.filebrowser) version 0.8.3
 
 jQuery File Browser is a plugin for creating OS like file browsers.
 
