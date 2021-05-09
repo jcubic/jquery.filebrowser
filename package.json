@@ -1,6 +1,6 @@
 {
   "name": "jquery.filebrowser",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "jQuery File Browser is a plugin for creating OS like file browsers.",
   "main": "js/jquery.filebrowser.min.js",
   "keywords": [
