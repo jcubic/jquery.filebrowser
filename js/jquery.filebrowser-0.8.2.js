@@ -633,7 +633,7 @@
                     }
                     var promise;
                     if (drag.selection) {
-                        promise = $.when.appy($, selected[settings.name].map(function(src) {
+                        promise = $.when.apply($, selected[settings.name].map(function(src) {
                             var dest = self.join(new_path, self.split(src).pop());
                             if (!same_root(self, src, dest)) {
                                 return self._rename(src, dest);
