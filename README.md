@@ -2,19 +2,22 @@
 
 jQuery File Browser is a plugin for creating OS like file browsers.
 
-[Demo](http://codepen.io/jcubic/pen/aBKYRR)
+## Demo
 
-# installation
+* [Simple, Fake FS Demo](http://codepen.io/jcubic/pen/aBKYRR)
+* [Lightning-fs + Service Worker Demo](https://jcubic.github.io/wayne/fs/)
+
+## installation
 
 to install you can grab the files from the repo or install from
 
-## bower
+### bower
 
 ```
 bower install jquery.filebrowser --save
 ```
 
-## npm
+### npm
 
 ```
 npm install jquery.filebrowser --save
@@ -60,11 +63,11 @@ and the plugin will refresh the view (call dir function) when it's resolved.
 
 more examples and usage in [examples directory](https://github.com/jcubic/jquery.filebrowser/tree/master/examples).
 
-# Requirement
+## Requirement
 
 If you want context menu (enabled using contextmenu option) you'll need jQuery UI and of course you need jQuery itself.
 
-# Options
+## Options
 
 * name - used to distinguish different filesystem for copying nad moving files (rename)
 * dir - function that should return a promise that resolve to object `{files: <ARRAY>, dirs: <ARRAY>}` or return that object
@@ -108,7 +111,7 @@ If you want context menu (enabled using contextmenu option) you'll need jQuery U
     },
 ```
 
-# API methods
+## API methods
 
 * path - return current path
 * name - return settings name
@@ -125,7 +128,7 @@ If you want context menu (enabled using contextmenu option) you'll need jQuery U
 * walk - function(filename, fn) - call function for each file/directory the signature for callaback function: function(path_part, last, return_value) the function return value from last call to callback function, 3rd argument is a value from previous call to callback function.
 
 
-# License
+## License
 
 Licensed under [MIT](http://opensource.org/licenses/MIT) license
 
